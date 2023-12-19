@@ -1,0 +1,212 @@
+<html lang="English">
+<head>
+  <title>Demo</title>
+  <script src="jspsych.js"></script>
+  <script src="jspsych-instructions.js"></script>
+  <script src="jspsych-html-keyboard-response.js"></script>
+  <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+
+  //----- GLOBAL VARIABLES -----------------------------------------
+  const answerKey = [3, 1, 3, 4, 1, 1, 1, 1, 1, 1, 1, 1];
+  let n_trial = 0;
+  let correctAnswer = answerKey[0];
+  let n_question = 1;
+  let currentTrialcorrect = false;
+  //----------------------------------------------------------------------
+
+  let jsPsych = initJsPsych({
+    // on_finish: function () {
+    //   jsPsych.data.get()
+    //           .filterColumns(['trialType', 'n_question', 'response', 'accuracy'])
+    //           .localSave('csv', 'mydata.csv');
+    // }
+  });
+
+  let datalog = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "",
+    trial_duration: 100,
+    on_finish: function () {
+      // var xhr = new XMLHttpRequest();
+      // xhr.open('POST', 'data.php'); // change 'write_data.php' to point to php script.
+      // xhr.setRequestHeader('Content-Type', 'application/json');
+      // xhr.onload = function () {
+      //   if (xhr.status == 200) {
+      //     var response = JSON.parse(xhr.responseText);
+      //     console.log(response.success);
+      //   }
+      // };
+      // xhr.send(jsPsych.data.get().json());
+      //var filteredData = jsPsych.data.get().filterColumns(['trialType', 'n_question', 'response', 'accuracy']);
+      var filteredData = jsPsych.data.get().filter([{ trialType: 'practice' }, { trialType: 'normal' }]);
+      var jsonData = JSON.stringify(filteredData.values());
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'data.php'); // change 'data.php' to point to your PHP script
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+        if(xhr.status == 200){
+          var response = JSON.parse(xhr.responseText);
+          console.log(response.success);
+        }
+      };
+      xhr.send(jsonData);
+    }
+  }
+
+  let instruction1 = {
+    type: jsPsychInstructions,
+    pages: function(){
+      pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br><br>This is the matrices test demo. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Next",
+    show_clickable_nav: true,
+  }
+
+  let instruction2 = {
+    type: jsPsychInstructions,
+    pages: function(){
+      pageOne = '<div style="font-size:20px;">That concludes the practice portion of this test<br><br><br>From here on, the test will get more difficult. ' +
+              '<br> You should always choose the image piece that best completes the pattern. <br> There is only one correct answer for each test item. ' +
+              '<br><br> You have as long as you like to choose your response, <br> but please try to answer as quickly as possible without sacrificing accuracy. ' +
+              '<br> If you don`t konw the answer, take your best guess. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Start",
+    show_clickable_nav: true,
+  }
+
+  let practiceTrial = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function () {
+      let question_image = `Images/${n_question}.png`;
+      // instructions at the top
+      let html = `<div style='text-align: center; margin-bottom: 20px;'>
+                  <p style='font-size: 40px; font-weight: bold;'>Practice:</p>
+                  <p>Use your keyboard to choose the image piece that best completes the pattern.</p>
+                  <p>${n_question} of 2</p></div>`;
+      //question image
+      html += `<div style='text-align: center; margin-bottom: 60px;'>
+                  <img src="${question_image}" style="max-width: 35%; height: auto;"></div>`;
+      html += "<div style='display: flex; justify-content: center; gap: 30px;'>";
+      //options images
+      for (let i = 1; i <= 5; i++) {
+        let option_image = `Images/${n_question}-${i}.png`; // Image path for each option
+        html += `<div style='text-align: center;'><img src='${option_image}' style='max-width: 90px;'></div>`;
+      }
+      return html;
+    },
+    choices: ['1','2','3','4','5'],
+    on_finish: function (data) {
+      let correctAnswer = answerKey[n_trial];
+      console.log(data.response);
+      console.log(correctAnswer);
+      if (parseInt(data.response) === correctAnswer) {
+        currentTrialcorrect = true;
+      } else {
+        currentTrialcorrect = false;
+      }
+      jsPsych.data.get().addToLast({
+        trialType: "practice",
+        n_question: n_question - 1,
+        response: data.response,
+        accuracy: currentTrialcorrect ? 1 : 0
+      });
+    }
+  }
+
+  let feedback = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function(){
+      let text = "";
+      if (currentTrialcorrect){
+        text += '<div style="font-size:35px; color:rgb(0 220 0)"><b>This is correct. Please press SPACE to continue.<br><br><br><br></div>'
+      } else {
+        text += '<div style="font-size:35px; color:rgb(240 0 0)"><b>This is incorrect. Please press SPACE to see the pictures again.<br><br><br><br></div>'
+      }
+      return text
+    }
+  }
+
+  let repeatIfWrong = {
+    timeline: [practiceTrial, feedback],
+    conditional_function: function(){
+      if (currentTrialcorrect) {
+        n_trial += 1;
+        n_question += 1;
+        return false; // Do not repeat if the response was correct
+      } else {
+        return false; // Repeat if the response was incorrect
+      }
+    }
+  }
+
+  let normalTrials = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function () {
+      let question_image = `Images/${n_question}.png`;
+      // instructions at the top
+      let html = `<div style='text-align: center; margin-bottom: 20px;'>
+                  <p>${n_question - 4} of 8</p></div>`;
+      //question image
+      html += `<div style='text-align: center; margin-bottom: 60px;'>
+                  <img src="${question_image}" style="max-width: 35%; height: auto;"></div>`;
+      html += "<div style='display: flex; justify-content: center; gap: 30px;'>";
+      //options images
+      for (let i = 1; i <= 5; i++) {
+        let option_image = `Images/${n_question}-${i}.png`; // Image path for each option
+        html += `<div style='text-align: center;'><img src='${option_image}' style='max-width: 90px;'></div>`;
+      }
+      return html;
+    },
+    choices: ['1','2','3','4','5'],
+    on_finish: function (data) {
+      let correctAnswer = answerKey[n_trial];
+      console.log(data.response);
+      console.log(correctAnswer);
+      if (parseInt(data.response) === correctAnswer) {
+        currentTrialcorrect = true;
+      } else {
+        currentTrialcorrect = false;
+      }
+      n_trial += 1;
+      n_question += 1;
+      jsPsych.data.get().addToLast({
+        trialType: "normal",
+        n_question: n_question - 1,
+        response: data.response,
+        accuracy: currentTrialcorrect ? 1 : 0
+      });
+    }
+  }
+
+
+  //--------------timeline variables-----------------
+  let timeline = [];
+
+  let practice = {
+    timeline: [practiceTrial, feedback, repeatIfWrong],
+    loop_function: function() {
+      return n_trial < 4; // Loop the entire block until two different trials are shown
+    }
+  }
+
+  let normal = {
+    timeline: [normalTrials],
+    loop_function: function() {
+      return n_trial < 12; // Loop the entire block until two different trials are shown
+    }
+  }
+
+  timeline.push(instruction1, practice, instruction2, normal, datalog);
+  jsPsych.run(timeline);
+
+  //--------------data collection-----------------
+
+</script>
+</html>

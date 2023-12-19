@@ -1,0 +1,340 @@
+<html>
+<head>
+  <title>Demo</title>
+  <script src="jspsych.js"></script>
+  <script src="jspsych-instructions.js"></script>
+  <script src="jspsych-html-keyboard-response.js"></script>
+  <script src="jspsych-plugin-survey-multi-choice.js"></script>
+  <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+  let modifiedData = [];
+
+  let instruction = {
+    type: jsPsychInstructions,
+    pages: function(){
+      let pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br><br>This is the Multidimensional Personality Questionnaire demo. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Next",
+    show_clickable_nav: true
+  }
+
+  let MPQ1 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "Sometimes I feel and experience things as I did when I was a child.",
+        name: '1',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I can be greatly moved by eloquent or poetic language.",
+        name: '2',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "While watching a movie, a T.V. show, or a play, I may become so involved that I forgot about myself and my surroundings," +
+                " and experience the story as if it were real and as if I were taking part in it.",
+        name: '3',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "If I stare at a picture and then look away from it, I can sometimes \"see\" an image of the picture, " +
+                "almost as if I were still looking at it.",
+        name: '4',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Sometimes I feel as if my mind could envelop the whole world.",
+        name: '5',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I like to watch cloud shapes change in the sky.",
+        name: '6',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "If I wish I can imagine (or daydream) some things so vividly that it\'s like watching a good movie or " +
+                "hearing a good story.",
+        name: '7',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I think I really know what some people mean when they talk about mystical experiences",
+        name: '8',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I sometimes \"step outside\" my usual self and experience a completely different state of being.",
+        name: '9',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Textures \- such as wool, sand, wood \- sometimes remind me of colors or music.",
+        name: '10',
+        options: ['True', 'False'],
+        required: true
+      },
+    ],
+    on_finish: function(data) {
+      jsPsych.data.get().addToLast({
+        n_question: data.name,
+        response: data.response,
+      });
+    }
+  }
+
+  let MPQ2 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "Sometimes I experience things as if they were doubly real.",
+        name: '11',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "When I listen to music I can get so caught up in it that I don\'t notice anything else.",
+        name: '12',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "If I wish I can imagine that my body is so heavy that I cannot move it.",
+        name: '13',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I can often somehow sense the presence of another person before I actually see or hear her/him.",
+        name: '14',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "The crackle and flames of a wood fire stimulate my imagination.",
+        name: '15',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Sometimes I am so immersed in nature or in art that I feel as if my whole state of consciousness " +
+                "has somehow been temporarily changed.",
+        name: '16',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Different Colors have distinctive and special meanings for me.",
+        name: '17',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I can so completely wander off into my own thoughts while doing a routine task that I actually forget that I am " +
+                "doing the task and find a few minutes later that I have finished it.",
+        name: '18',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I can sometimes recall certain past experiences in my life so clearly and vividly that " +
+                "it is like living them again, or almost so.",
+        name: '19',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Things that might seem meaningless to others often make sense to me.",
+        name: '20',
+        options: ['True', 'False'],
+        required: true
+      },
+    ],
+    on_finish: function(data) {
+      jsPsych.data.get().addToLast({
+        n_question: data.name,
+        response: data.response,
+      });
+    }
+  }
+
+  let MPQ3 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "If I acted in a play I think I would really feel the emotions of the character and \"become\" " +
+                "that person for the time being, forgetting both myself and the audience.",
+        name: '21',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "My thoughts often occur as visual images rather than as words.",
+        name: '22',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I am often delighted by small things (like the colors in soap bubbles and the five\-pointed star shape " +
+                "that appears when you cut an apple across the core.",
+        name: '23',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "When listening to organ music or other powerful music, I sometimes feel as if I am being lifted into the air.",
+        name: '24',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Sometimes I can change noise into music by the way I listen to it.",
+        name: '25',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Some of my most vivid memories are called up by scents and smells.",
+        name: '26',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Some music reminds me of pictures or changing patterns of color.",
+        name: '27',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I often know what someone is going to say before he or she says it.",
+        name: '28',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I often have \"physical memories\"; for example, after I\'ve been swimming I may feel as if I\'m still in the water.",
+        name: '29',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "The sound of a voice can be so fascinating to me that I can just go on listening to it.",
+        name: '30',
+        options: ['True', 'False'],
+        required: true
+      },
+    ],
+    on_finish: function(data) {
+      jsPsych.data.get().addToLast({
+        n_question: data.name,
+        response: data.response,
+      });
+    }
+  }
+
+  let MPQ4 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "At times I somehow feel the presence of someone who is not physically there.",
+        name: '31',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "Sometimes thoughts and images come to me without any effort on my part.",
+        name: '32',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I find that different smells have different colors.",
+        name: '33',
+        options: ['True', 'False'],
+        required: true
+      },
+      {
+        prompt: "I can be deeply moved by a sunset.",
+        name: '34',
+        options: ['True', 'False'],
+        required: true
+      }
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let dbRow = {
+            question: questionName,
+            response: responses[questionName],
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+
+  function sendToServer(data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'data.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        console.log(xhr.responseText); // Handle the response from the server
+      }
+    };
+    xhr.send(JSON.stringify(data));
+  }
+
+
+  //--------------timeline variables-----------------
+  let timeline = [];
+  let datalog = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "",
+    trial_duration: 100,
+    on_finish: function () {
+      var filteredData = jsPsych.data.get().filter([{ trial_type: 'survey-multi-choice' }]);
+      //var filteredData = jsPsych.data.get();
+      let jsonData = JSON.stringify(filteredData.values());
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', 'data.php'); // change 'data.php' to point to your PHP script
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+        if(xhr.status == 200){
+          var response = JSON.parse(xhr.responseText);
+          console.log(response.success);
+        }
+      };
+      xhr.send(jsonData);
+    }
+  }
+
+    let jsPsych = initJsPsych({
+      on_finish() {
+        sendToServer(modifiedData);
+      }
+  });
+
+  //timeline.push(instruction, MPQ1, MPQ2, MPQ3, MPQ4, datalog);
+  timeline.push(instruction, MPQ4);
+  jsPsych.run(timeline);
+
+</script>
+</html>

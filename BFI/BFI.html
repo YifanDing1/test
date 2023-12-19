@@ -1,0 +1,144 @@
+<html>
+<head>
+  <title>Demo</title>
+  <script src="jspsych.js"></script>
+  <script src="jspsych-instructions.js"></script>
+  <script src="jspsych-html-keyboard-response.js"></script>
+  <script src="jspsych-plugin-survey-multi-choice.js"></script>
+  <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+  let modifiedData = [];
+  let responseText = "";
+  function mapResponseToNumber(response) {
+  const mapping = {
+    'Disagree strongly': 1,
+    'Disagree a little': 2,
+    'Neutral; no opinion': 3,
+    'Agree a little': 4,
+    'Agree strongly': 5
+  };
+  return mapping[response] || 0; // Return 0 or some default value for unrecognized responses
+}
+
+  let instruction = {
+    type: jsPsychInstructions,
+    pages: function(){
+      let pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br><br>This is the The Big Five Inventory demo. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Next",
+    show_clickable_nav: true
+  }
+
+  let BFI1 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "Is outgoing, sociable.",
+        name: '1',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Is compassionate, has a soft heart.",
+        name: '2',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Tends to be disorganized.",
+        name: '3',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Is relaxed, handles stress well.",
+        name: '4',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Has few artistic interests.",
+        name: '5',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Has an assertive personality.",
+        name: '6',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Is respectful, treats others with respect.",
+        name: '7',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Tends to be lazy.",
+        name: '8',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Stays optimistic after experiencing a setback.",
+        name: '9',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+      {
+        prompt: "Is curious about many different things.",
+        name: '10',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true
+      },
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let responseText = responses[questionName];
+          let dbRow = {
+            question: questionName,
+            response: responseText,
+            score: mapResponseToNumber(responseText),
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+
+  function sendToServer(data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'data.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        console.log(xhr.responseText); // Handle the response from the server
+      }
+    };
+    xhr.send(JSON.stringify(data));
+  }
+
+
+  //--------------timeline variables-----------------
+  let timeline = [];
+
+  let jsPsych = initJsPsych({
+      on_finish() {
+        sendToServer(modifiedData);
+      }
+  });
+
+  timeline.push(instruction, BFI1);
+  jsPsych.run(timeline);
+
+</script>
+</html>

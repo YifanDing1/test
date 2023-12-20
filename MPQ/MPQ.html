@@ -90,10 +90,18 @@
       },
     ],
     on_finish: function(data) {
-      jsPsych.data.get().addToLast({
-        n_question: data.name,
-        response: data.response,
-      });
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let dbRow = {
+            question: questionName,
+            response: responses[questionName],
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
     }
   }
 
@@ -165,10 +173,18 @@
       },
     ],
     on_finish: function(data) {
-      jsPsych.data.get().addToLast({
-        n_question: data.name,
-        response: data.response,
-      });
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let dbRow = {
+            question: questionName,
+            response: responses[questionName],
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
     }
   }
 
@@ -239,10 +255,18 @@
       },
     ],
     on_finish: function(data) {
-      jsPsych.data.get().addToLast({
-        n_question: data.name,
-        response: data.response,
-      });
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let dbRow = {
+            question: questionName,
+            response: responses[questionName],
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
     }
   }
 
@@ -305,35 +329,15 @@
 
   //--------------timeline variables-----------------
   let timeline = [];
-  let datalog = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: "",
-    trial_duration: 100,
-    on_finish: function () {
-      var filteredData = jsPsych.data.get().filter([{ trial_type: 'survey-multi-choice' }]);
-      //var filteredData = jsPsych.data.get();
-      let jsonData = JSON.stringify(filteredData.values());
-      let xhr = new XMLHttpRequest();
-      xhr.open('POST', 'data.php'); // change 'data.php' to point to your PHP script
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onload = function() {
-        if(xhr.status == 200){
-          var response = JSON.parse(xhr.responseText);
-          console.log(response.success);
-        }
-      };
-      xhr.send(jsonData);
-    }
-  }
 
-    let jsPsych = initJsPsych({
+  let jsPsych = initJsPsych({
       on_finish() {
         sendToServer(modifiedData);
       }
   });
 
-  //timeline.push(instruction, MPQ1, MPQ2, MPQ3, MPQ4, datalog);
-  timeline.push(instruction, MPQ4);
+  timeline.push(instruction, MPQ1, MPQ2, MPQ3, MPQ4);
+  //timeline.push(instruction, MPQ4);
   jsPsych.run(timeline);
 
 </script>

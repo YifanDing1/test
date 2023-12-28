@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<div id="directions">
+    <svg width="400" height="400" viewbox="86 80 250 250" style="border: none;"></svg>
+
+    <div id="responses"></div>
+
+    <script>
+        const svg = document.querySelector('svg');
+        let arrowCounter = 0;
+        const directions = [0, 45, 90, 135, 180, 225, 270, 315];
+        const lengths = [80, 40];
+        const headSize = 6;
+
+        // Function to create an arrow
+        function createArrow(x1, y1, x2, y2, length, angle) {
+            arrowCounter++;
+            const arrowID = "arrow-" + arrowCounter;
+            const arrow = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+            const angle_ = Math.atan2(y1 - y2, x1 - x2);
+            const adjustedX2 = x2 + headSize * Math.cos(angle_);
+            const adjustedY2 = y2 + headSize * Math.sin(angle_);
+            arrow.setAttribute('x1', x1);
+            arrow.setAttribute('y1', y1);
+            arrow.setAttribute('x2', adjustedX2);
+            arrow.setAttribute('y2', adjustedY2);
+            arrow.setAttribute('stroke', 'black');
+            arrow.setAttribute('stroke-width', '2');
+            arrow.classList.add('arrow');
+
+            let code = `${angle}-${length}`
+            arrow.setAttribute('code', code)
+            arrow.setAttribute('data-id', arrowID);
+            svg.appendChild(arrow);
+
+            // Arrowhead
+            const headX1 = adjustedX2 + headSize * Math.cos(angle_ - Math.PI / 7);
+            const headY1 = adjustedY2 + headSize * Math.sin(angle_ - Math.PI / 7);
+            const headX2 = adjustedX2 + headSize * Math.cos(angle_ + Math.PI / 7);
+            const headY2 = adjustedY2 + headSize * Math.sin(angle_ + Math.PI / 7);
+            const arrowhead = document.createElementNS("http://www.w3.org/2000/svg", 'polygon');
+            arrowhead.setAttribute('points', `${x2},${y2} ${headX1},${headY1} ${headX2},${headY2}`);
+            arrowhead.setAttribute('code', code)
+            arrowhead.setAttribute('fill', 'black');
+            arrowhead.classList.add('arrow');
+            arrowhead.setAttribute('data-id', arrowID);
+            svg.appendChild(arrowhead);
+
+            // Attach click event
+            const handleClick = () => {
+                const clickedID = arrow.getAttribute('data-id');  // Get the unique ID from the clicked element
+                document.querySelector(`.arrow[data-id="${clickedID}"]`);
+                document.querySelector(`polygon[data-id="${clickedID}"]`);
+
+                // Apply the desired styles or actions to both the arrow and arrowhead
+                let length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                let code = `${angle}-${length}`
+                let recallAngle = `${angle}`
+                let recallLength = `${length}`
+                //console.log(code)
+
+                arrow.setAttribute('stroke', 'red')
+                arrowhead.setAttribute('fill', 'red')
+                arrowhead.setAttribute('stroke', 'red')
+                recalledGrid.push(code)
+                recalledAngle.push(recallAngle)
+                recalledLength.push(recallLength)
+                console.log(recalledGrid)
+                //console.log(recalledAngle)
+                //console.log(recalledLength)
+
+                return
+
+                const responseDiv = document.getElementById('responses');
+                responseDiv.innerHTML += `Selected arrow with direction: ${angle}° and length: ${length}<br>`;
+            };
+
+            arrow.addEventListener('click', handleClick);
+            arrowhead.addEventListener('click', handleClick);
+        }
+
+        // Generate all arrows
+        directions.forEach(angle => {
+
+            let a = angle - 90
+            let actual_angle = {
+                180: 0,
+                135: 45,
+                90: 90,
+                45: 135,
+                0: 180,
+                315: 225,
+                270: 270,
+                225: 315,
+            }[angle]
+
+            lengths.forEach(length => {
+                const endX = 200 + length * Math.cos(a * (Math.PI / 180));
+                const endY = 200 - length * Math.sin(a * (Math.PI / 180));
+                createArrow(200, 200, endX, endY, length, actual_angle);
+            });
+        });
+    </script>
+</div>

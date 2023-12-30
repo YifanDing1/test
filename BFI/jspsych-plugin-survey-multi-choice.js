@@ -33,7 +33,7 @@ var jsPsychSurveyMultiChoice = (function (jspsych) {
                   horizontal: {
                       type: jspsych.ParameterType.BOOL,
                       pretty_name: "Horizontal",
-                      default: false,
+                      default: true,
                   },
                   /** Name of the question in the trial data. If no name is given, the questions are named Q0, Q1, etc. */
                   name: {
@@ -88,7 +88,7 @@ var jsPsychSurveyMultiChoice = (function (jspsych) {
           html += '<style id="jspsych-survey-multi-choice-css">';
           html +=
               // Container for the entire set of questions and options
-              ".jspsych-content { width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; }" +
+              ".jspsych-content { width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }" +
 
               // Style for each question
               ".jspsych-survey-multi-choice-question { margin-top: 2em; margin-bottom: 2em; text-align: left; }" +
@@ -97,6 +97,7 @@ var jsPsychSurveyMultiChoice = (function (jspsych) {
               ".jspsych-survey-multi-choice-option { text-align: left; }" +
 
               // Additional styles
+              ".jspsych-survey-multi-choice-horizontal .jspsych-survey-multi-choice-option {  display: inline-block;  margin-left: 0.5em;  margin-right: 0.5em;  vertical-align: top;}" +
               ".jspsych-survey-multi-choice-text span.required {display: none;}" +
               "label.jspsych-survey-multi-choice-text { display: block; margin-bottom: 0.5em; }" +
               "input[type='radio'] { margin-top: 0; margin-bottom: 0; margin-right: 0.5em; vertical-align: middle; }";

@@ -1,0 +1,138 @@
+<html>
+<head>
+  <title>Demo</title>
+  <script src="jspsych.js"></script>
+  <script src="jspsych-instructions.js"></script>
+  <script src="jspsych-html-keyboard-response.js"></script>
+  <script src="jspsych-plugin-survey-multi-choice.js"></script>
+  <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+  let modifiedData = [];
+  let responseText = "";
+  function mapResponseToNumber(response) {
+  const mapping = {
+    'never': 1,
+    'rarely': 2,
+    'sometimes': 3,
+    'often': 4,
+    'very often': 5
+  };
+  return mapping[response] || 0; // Return 0 or some default value for unrecognized responses
+}
+
+  let instruction = {
+    type: jsPsychInstructions,
+    pages: function(){
+      let pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br><br>This is the ADHD questionare demo. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Next",
+    show_clickable_nav: true
+  }
+
+  let ADHD = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "How often do you make careless mistakes when you have to work on a boring or difficult project?",
+        name: '1',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you have difficulty keeping your attention when you are doing boring or repetitive work?",
+        name: '2',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?",
+        name: '3',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you have trouble wrapping up the fine details of a project, once the challenging parts have been done?",
+        name: '4',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you have difficulty getting things in order when you have to do a task that requires organization?",
+        name: '5',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "When you have a task that requires a lot of thought, how often do you avoid or delay getting started?",
+        name: '6',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you misplace or have difficulty finding things at home or at work?",
+        name: '7',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often are you distracted by activity or noise around you?",
+        name: '8',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+      {
+        prompt: "How often do you have problems remembering appointments or obligations?",
+        name: '9',
+        options: ['never', 'rarely', 'sometimes', 'often', 'very often'],
+        required: true
+      },
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let responseText = responses[questionName];
+          let dbRow = {
+            question: questionName,
+            response: responseText,
+            score: mapResponseToNumber(responseText),
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+
+  function sendToServer(data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'data.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        console.log(xhr.responseText); // Handle the response from the server
+      }
+    };
+    xhr.send(JSON.stringify(data));
+  }
+
+
+  //--------------timeline variables-----------------
+  let timeline = [];
+
+  let jsPsych = initJsPsych({
+      on_finish() {
+        sendToServer(modifiedData);
+      }
+  });
+
+  timeline.push(instruction, ADHD);
+  jsPsych.run(timeline);
+
+</script>
+</html>

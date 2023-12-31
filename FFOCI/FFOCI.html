@@ -1,0 +1,308 @@
+<html>
+<head>
+  <title>Demo</title>
+  <script src="jspsych.js"></script>
+  <script src="jspsych-instructions.js"></script>
+  <script src="jspsych-html-keyboard-response.js"></script>
+  <script src="jspsych-plugin-survey-multi-choice.js"></script>
+  <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+  let modifiedData = [];
+  let responseText = "";
+  function mapResponseToNumber(response) {
+  const mapping = {
+    'Disagree strongly': 1,
+    'Disagree a little': 2,
+    'Neither Agree Nor Disagree': 3,
+    'Agree a little': 4,
+    'Agree strongly': 5
+  };
+  return mapping[response] || 0; // Return 0 or some default value for unrecognized responses
+}
+
+  let instruction = {
+    type: jsPsychInstructions,
+    pages: function(){
+      let pageOne = '<div style="font-size:20px;"><b>INSTRUCTIONS</b><br><br><br>This is the Five Factor Obsessive-Compulsive Inventory demo. <br><br><br></div>'
+      return [pageOne]
+    },
+    allow_backward: false,
+    button_label_next: "Next",
+    show_clickable_nav: true
+  }
+
+  let FFOIC1 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "I sometimes sacrifice the quality of my work, just to get it finished.",
+        name: '7',
+        options: ['Disagree strongly', 'Disagree a little', 'Neither Agree Nor Disagree', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I don\'t spend much time on organizing or ordering things.",
+        name: '8',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "When I really think about it, I guess I don\'t take my responsibilities seriously enough.",
+        name: '9',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I don\'t get bogged down in making sure everything is just right.",
+        name: '19',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I am not a particularly methodical or well\-organized person.",
+        name: '20',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: " I don\'t always take the rules and regulations too seriously.",
+        name: '21',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "People often think I work too long and hard to make things perfect.",
+        name: '31',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "The smallest details are often the most important.",
+        name: '32',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "Following the rules is always important, even if I\'m playing a game by myself.",
+        name: '33',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "Doing something \"good enough\" is not OK for me.",
+        name: '43',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let responseText = responses[questionName];
+          let dbRow = {
+            question: questionName,
+            response: responseText,
+            score: mapResponseToNumber(responseText),
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+
+  let FFOIC2 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "I take such good care of my things that they last much longer than they probably should.",
+        name: '44',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I have such a strong sense of duty that I sometimes become over-committed.",
+        name: '45',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I strive for perfection, even on what other people might call minor details.",
+        name: '55',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "Other people have said that I\'m extremely detail oriented, almost to a fault.",
+        name: '56',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "Knowing the proper etiquette in all situations is very important for me.",
+        name: '57',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I take great pride in the quality of my work.",
+        name: '67',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I take excellent care of things so they\'ll stay in perfect condition.",
+        name: '68',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "People often suggest I take my responsibilities too seriously.",
+        name: '69',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I\'m something of a perfectionist.",
+        name: '79',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I am a very methodical person; perhaps too much so.",
+        name: '80',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let responseText = responses[questionName];
+          let dbRow = {
+            question: questionName,
+            response: responseText,
+            score: mapResponseToNumber(responseText),
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+
+  let FFOIC3 = {
+    type: jsPsychSurveyMultiChoice,
+    questions: [
+      {
+        prompt: "I can be pretty exacting when it comes to duty and honor.",
+        name: '81',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I take great pride in being efficient and effective.",
+        name: '91',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I need to consider every little detail.",
+        name: '92',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I firmly believe that you should always play strictly by the rules.",
+        name: '93',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I like my work to be flawless and unblemished.",
+        name: '103',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I probably spend more time than is needed organizing and ordering things.",
+        name: '104',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I take pride in being someone who is reliable, no matter what happens.",
+        name: '105',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I think it\'s terribly important to get things just right.",
+        name: '115',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "I always make sure that my work is very well planned and organized.",
+        name: '116',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+      {
+        prompt: "Some persons suggest I can be excessive in my emphasis on being proper and moral.",
+        name: '117',
+        options: ['Disagree strongly', 'Disagree a little', 'Neutral; no opinion', 'Agree a little', 'Agree strongly'],
+        required: true,
+      },
+    ],
+    on_finish: function(data) {
+      let responses = data.response;
+      for (let questionName in responses) {
+        if (responses.hasOwnProperty(questionName)) {
+          // Construct an object that matches your database schema
+          let responseText = responses[questionName];
+          let dbRow = {
+            question: questionName,
+            response: responseText,
+            score: mapResponseToNumber(responseText),
+            // Add other fields as necessary, matching your database columns
+          };
+          modifiedData.push(dbRow);
+        }
+      }
+    }
+  }
+  
+  function sendToServer(data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'data.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        console.log(xhr.responseText); // Handle the response from the server
+      }
+    };
+    xhr.send(JSON.stringify(data));
+  }
+
+
+  //--------------timeline variables-----------------
+  let timeline = [];
+
+  let jsPsych = initJsPsych({
+      on_finish() {
+        sendToServer(modifiedData);
+      }
+  });
+
+  timeline.push(instruction,  FFOIC1,  FFOIC2,  FFOIC3);
+  jsPsych.run(timeline);
+
+</script>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shape Drawing</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<canvas id="shapesCanvas" width="400" height="400"></canvas>
+<script>
+    const canvas = document.getElementById('shapesCanvas');
+    const context = canvas.getContext('2d');
+
+    const shapeWidth = 100; // Width of the shapes
+
+
+    class Shape {
+        constructor(posX, posY, type, color) {
+            this.posX = posX;
+            this.posY = posY;
+            this.type = type;
+            this.color = color;
+            this.width = shapeWidth;
+        }
+
+        draw() {
+            context.save();
+            context.fillStyle = this.color;
+            context.strokeStyle = this.color;
+            context.lineWidth = this.width / 4;
+
+            if (this.type == "cross") {
+                // Draw horizontal line
+                context.beginPath();
+                context.moveTo(this.posX - this.width / 2, this.posY);
+                context.lineTo(this.posX + this.width / 2, this.posY);
+                // Draw vertical line
+                context.moveTo(this.posX, this.posY - this.width / 2);
+                context.lineTo(this.posX, this.posY + this.width / 2);
+                context.stroke();
+            }
+            else if (this.type == "X") {
+                // Draw first line of X
+                context.beginPath();
+                context.moveTo(this.posX - this.width / 2.5, this.posY - this.width / 2.5);
+                context.lineTo(this.posX + this.width / 2.5, this.posY + this.width / 2.5);
+                // Draw second line of X
+                context.moveTo(this.posX + this.width / 2.5, this.posY - this.width / 2.5);
+                context.lineTo(this.posX - this.width / 2.5, this.posY + this.width / 2.5);
+                context.stroke();
+            }
+            else if (this.type == "L") {
+                context.beginPath();
+                context.strokeStyle = this.color;
+                // Draw vertical line for the L
+                context.moveTo(this.posX - this.width / 2, this.posY - this.width / 2.5);
+                context.lineTo(this.posX - this.width / 2, this.posY + this.width / 2.5);
+                // Draw horizontal line for the bottom of the L
+                context.moveTo(this.posX - this.width / 1.6, this.posY + this.width / 2.5);
+                context.lineTo(this.posX, this.posY + this.width / 2.5);
+                context.stroke();
+            }
+            else if (this.type == "T") {
+                context.beginPath();
+                // Draw horizontal line for the top of the T
+                context.moveTo(this.posX - this.width / 2.5, this.posY - this.width / 2);
+                context.lineTo(this.posX + this.width / 2.5, this.posY - this.width / 2);
+                // Draw a longer vertical line for the T
+                context.moveTo(this.posX, this.posY - this.width / 2);
+                context.lineTo(this.posX, this.posY + this.width / 3); // Adjust the Y endpoint to be less negative
+                context.stroke();
+            }
+        }
+    }
+
+    // Create and draw shapes
+    const shapes = [
+        new Shape(100, 100, "T", "gray"),
+        new Shape(300, 100, "L", "gray"),
+        new Shape(100, 300, "cross", "gray"),
+        new Shape(300, 300, "X", "gray")
+    ];
+
+    shapes.forEach(shape => shape.draw());
+</script>
+</body>
+</html>

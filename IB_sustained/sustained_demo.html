@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset=\"utf-8\">
+    <title>Multiple Object Tracking</title>
+    <style>
+    #all, #fail_message, #fail_message_2 {
+        width: 700px;
+        font-family: "Arial", sans-serif;
+        margin: 10px auto 10px auto;
+        font-size: 20px;  
+        text-align: center;
+    } 
+    #objects {
+        background-color: #7676A7;
+        display: block;
+        margin: 0 auto;
+    }
+    #fixation, #fail_message, #fail_message_2 {
+        display: block;
+        margin: 0 auto;
+        width: 666px;
+        height: 546px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+    fieldset {
+        border: 0px;
+        font-family: "Arial", sans-serif;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+    </style>
+
+    <script>
+        function openFullscreen() {
+            let elem = document.querySelector('html')
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
+
+            //console.log(checkBrowser())
+
+    </script>
+</head>
+<body>
+<div id="fail_message_2" style="position: relative; display: none">
+    <br>
+    <br>
+    <br>
+    As noted in the instructions, this experiment will only run in Chrome or Firefox browsers.
+    <br>
+    <br>
+    The program detected that you are not currently using a Chrome/Firefox browser, so the study ended before you completed the task.
+    <br>
+    <br>
+    Thank you for your understanding.
+</div>
+<div id="fail_message" style="position: relative; display: none">
+    <br>
+    <br>
+    <br>
+    As noted in the instructions, in order to receive compensation for this study, you needed to remain focused on the experiment browser window throughout the task.
+    <br>
+    <br>
+    The program detected that you switched away from the experiment browser window/tab, so the study ended before you completed the task.
+    <br>
+    <br>
+    Thank you for your understanding.
+</div>
+
+<div id="all" style="position: relative; visibility: hidden">
+    <form id="survey_data" name="survey_data" action="similarity_greyscale_study3_ProlificParticipants_All.php" method="post">
+        <script type="text/javascript">
+        </script>
+        <input type="hidden" name="workerID" value="">
+        <input type="hidden" name="studyName" value="">
+        <input type="hidden" name="start1" value="">
+        <input type="hidden" name="duration3" value="">
+    </form>
+    <form id="task_data" onclick=openFullscreen() name="task_data" action="similarity_greyscale_study3_data.php" method="post"><fieldset>
+    <canvas id="objects" width="666" height="546" style="z-index:1"></canvas>
+    <canvas id="fixation" width="666" height="546" style="z-index:2"></canvas>
+    <button
+            name="myButton" id="myButton"
+            style="position:absolute; z-index:3, top:250px; left:320px"
+            disabled
+            onclick="setTimeout(function() {
+                document.getElementById('myButton')
+                .setAttribute('disabled', true)})"
+    > Submit </button>
+
+        <script>
+            let button = document.getElementById('myButton')
+            function disable_button() {
+                button.removeAttribute('disabled')
+            }
+        </script>
+
+    <input
+        type="number" id="count" min="0" max="100"
+        placeholder="Enter count"
+        style="position:absolute; z-index:3; top:270px; left:321px;
+        width:99px"
+        oninput="disable_button()"
+    >
+    <div id="ibcolor" align='left' style="position:absolute; z-index:3; top:220px; left:300px; color:white">
+        <input type="radio" name="ibRespColor" value="black" oninput="disable_button()">
+        <label for="ibRespColor"> Black </label> <br>
+        <input type="radio" name="ibRespColor" value="white" oninput="disable_button()">
+        <label for="ibRespColor"> White </label> <br>
+        <input type="radio" name="ibRespColor" value="Grey" oninput="disable_button()">
+        <label for="ibRespColor"> Grey </label> <br>
+    </div>
+    <div id="ibshape" align = 'left' style="position:absolute; z-index:3; top:220px; left:300px; color:white">
+        <input type="radio" name="ibRespShape" value="square" oninput="disable_button()">
+        <label for="ibRespShape"> Square </label> <br>
+        <input type="radio" name="ibRespShape" value="cross" oninput="disable_button()">
+        <label for="ibRespShape"> Cross </label> <br>
+        <input type="radio" name="ibRespShape" value="circle" oninput="disable_button()">
+        <label for="ibRespShape"> Circle </label> <br>
+        <input type="radio" name="ibRespShape" value="triangle" oninput="disable_button()">
+        <label for="ibRespShape"> Triangle </label> <br>
+        <input type="radio" name="ibRespShape" value="diamond" oninput="disable_button()">
+        <label for="ibRespShape"> Diamond </label> <br>
+
+    </div>
+    <div id="agerange" align='left' style="position:absolute; z-index:3; top:220px; left:250px; color:white">
+        <input type="radio" name="age" value="1" oninput="disable_button()">
+        <label for="age"> 18 or older </label> <br>
+        <input type="radio" name="age" value="0" oninput="disable_button()">
+        <label for="age"> Younger than 18 </label>
+    </div>
+    <div id='country' align='left' style ="position:absolute; z-index:3; top:350px; left:250px; color:white">
+        <select id='country_options'>
+        <option selected>United States</option>
+        <option>China</option>
+        <option>Japan</option>
+        <option>Germany</option>
+        <option>India</option>
+        <option>Brazil</option>
+        <option>United Kingdom</option>
+        <option>Korea</option>
+        <option>France</option>
+        <option>Italy</option>
+        <option>Russia</option>
+        <option>Mexico</option>
+        <option>Canada</option>
+        <option>Spain</option>
+        <option>Indonesia</option>
+        <option>Vietnam</option>
+        <option>Turkey</option>
+        <option>Australia</option>
+        <option>Taiwan</option>
+        <option>Philippines</option>
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>American Samoa</option>
+        <option>Andorra</option>
+        <option>Anguilla</option>
+        <option>Antarctica</option>
+        <option>Antigua And Barbuda</option>
+        <option>Argentina</option>
+        <option>Armenia</option>
+        <option>Aruba</option>
+        <option>Australia</option>
+        <option>Austria</option>
+        <option>Azerbaijan</option>
+        <option>Bahamas</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Barbados</option>
+        <option>Belarus</option>
+        <option>Belgium</option>
+        <option>Belize</option>
+        <option>Benin</option><option>Bermuda</option><option>Bhutan</option><option>Bolivia</option><option>Bosnia and Herzegovina</option><option>Botswana</option><option>Bouvet Island</option><option>Brazil</option><option>British Indian Ocean Territory</option><option>Brunei Darussalam</option><option>Bulgaria</option><option>Burkina Faso</option><option>Burundi</option><option>Cambodia</option><option>Cameroon</option><option>Canada</option><option>Cape Verde</option><option>Cayman Islands</option><option>Central African Republic</option><option>Chad</option><option>Chile</option><option>China</option><option>Christmas Island</option><option>Cocos (Keeling) Islands</option><option>Colombia</option><option>Comoros</option><option>Congo</option><option>Congo, the Democratic Republic of the</option><option>Cook Islands</option><option>Costa Rica</option><option>Cote d'Ivoire</option><option>Croatia</option><option>Cyprus</option><option>Czech Republic</option><option>Denmark</option><option>Djibouti</option><option>Dominica</option><option>Dominican Republic</option><option>East Timor</option><option>Ecuador</option><option>Egypt</option><option>El Salvador</option><option>England</option><option>Equatorial Guinea</option><option>Eritrea</option><option>Espana</option><option>Estonia</option><option>Ethiopia</option><option>Falkland Islands</option><option>Faroe Islands</option><option>Fiji</option><option>Finland</option><option>France</option><option>French Guiana</option><option>French Polynesia</option><option>French Southern Territories</option><option>Gabon</option><option>Gambia</option><option>Georgia</option><option>Germany</option><option>Ghana</option><option>Gibraltar</option><option>Great Britain</option><option>Greece</option><option>Greenland</option><option>Grenada</option><option>Guadeloupe</option><option>Guam</option><option>Guatemala</option><option>Guinea</option><option>Guinea-Bissau</option><option>Guyana</option><option>Haiti</option><option>Heard and Mc Donald Islands</option><option>Honduras</option><option>Hong Kong</option><option>Hungary</option><option>Iceland</option><option>India</option><option>Indonesia</option><option>Ireland</option><option>Israel</option><option>Italy</option><option>Jamaica</option><option>Japan</option><option>Jordan</option><option>Kazakhstan</option><option>Kenya</option><option>Kiribati</option><option>Korea, Republic of</option><option>Korea (South)</option><option>Kuwait</option><option>Kyrgyzstan</option><option>Lao People's Democratic Republic</option><option>Latvia</option><option>Lebanon</option><option>Lesotho</option><option>Liberia</option><option>Libya</option><option>Liechtenstein</option><option>Lithuania</option><option>Luxembourg</option><option>Macau</option><option>Macedonia</option><option>Madagascar</option><option>Malawi</option><option>Malaysia</option><option>Maldives</option><option>Mali</option><option>Malta</option><option>Marshall Islands</option><option>Martinique</option><option>Mauritania</option><option>Mauritius</option><option>Mayotte</option><option>Mexico</option><option>Micronesia, Federated States of</option><option>Moldova, Republic of</option><option>Monaco</option><option>Mongolia</option><option>Montserrat</option><option>Morocco</option><option>Mozambique</option><option>Myanmar</option><option>Namibia</option><option>Nauru</option><option>Nepal</option><option>Netherlands</option><option>Netherlands Antilles</option><option>New Caledonia</option><option>New Zealand</option><option>Nicaragua</option><option>Niger</option><option>Nigeria</option><option>Niue</option><option>Norfolk Island</option><option>Northern Ireland</option><option>Northern Mariana Islands</option><option>Norway</option><option>Oman</option><option>Pakistan</option><option>Palau</option><option>Panama</option><option>Papua New Guinea</option><option>Paraguay</option><option>Peru</option><option>Philippines</option><option>Pitcairn</option><option>Poland</option><option>Portugal</option><option>Puerto Rico</option><option>Qatar</option><option>Reunion</option><option>Romania</option><option>Russia</option><option>Russian Federation</option><option>Rwanda</option><option>Saint Kitts and Nevis</option><option>Saint Lucia</option><option>Saint Vincent and the Grenadines</option><option>Samoa (Independent)</option><option>San Marino</option><option>Sao Tome and Principe</option><option>Saudi Arabia</option><option>Scotland</option><option>Senegal</option><option>Serbia and Montenegro</option><option>Seychelles</option><option>Sierra Leone</option><option>Singapore</option><option>Slovakia</option><option>Slovenia</option><option>Solomon Islands</option><option>Somalia</option><option>South Africa</option><option>South Georgia and the South Sandwich Islands</option><option>South Korea</option><option>Spain</option><option>Sri Lanka</option><option>St. Helena</option><option>St. Pierre and Miquelon</option><option>Suriname</option><option>Svalbard and Jan Mayen Islands</option><option>Swaziland</option><option>Sweden</option><option>Switzerland</option><option>Taiwan</option><option>Tajikistan</option><option>Tanzania</option><option>Thailand</option><option>Togo</option><option>Tokelau</option><option>Tonga</option><option>Trinidad</option><option>Trinidad and Tobago</option><option>Tunisia</option><option>Turkey</option><option>Turkmenistan</option><option>Turks and Caicos Islands</option><option>Tuvalu</option><option>Uganda</option><option>Ukraine</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option><option>United States Minor Outlying Islands</option><option>Uruguay</option><option>Uzbekistan</option><option>Vanuatu</option><option>Vatican City State (Holy See)</option><option>Venezuela</option><option>Viet Nam</option><option>Virgin Islands (British)</option><option>Virgin Islands (U.S.)</option><option>Wales</option><option>Wallis and Futuna Islands</option><option>Western Sahara</option><option>Yemen</option><option>Zambia</option><option>Zimbabwe</option></select>
+    </div>
+    <div id="priorib" align='left' style="position:absolute; z-index:3; top:200px; left:300px; color:white">
+        <input type="radio" name="prior" value="0"
+               oninput="disable_button()"
+        >
+        <label for="prior"> No </label> <br>
+        <input type="radio" name="prior" value="1"
+               oninput="disable_button()"
+        >
+        <label for="prior"> Yes </label> <br>
+        <input type="text" name="prior" id="priortext" value="" style="height: 25px; width: 200px">
+    </div>
+    <div id="YesNo" align='left' style="position:absolute; z-index:3; top:200px; left:300px; color:white">
+        <input type="radio" name="prior" value="1"
+               oninput="disable_button()"
+        >
+        <label for="prior"> Yes </label> <br>
+        <input type="radio" name="prior" value="0"
+               oninput="disable_button()"
+        >
+        <label for="prior"> No </label> <br>
+    </div>
+    <div id="norvis" align='left' style="position:absolute; z-index:3; top:170px; left:50px; color:white">
+        <input type="radio" name="normal_vision" value="0" oninput="disable_button()">
+        <label for="normal_vision"> My vision is normal. I don't need glasses or contacts. </label> <br>
+        <input type="radio" name="normal_vision" value="1" oninput="disable_button()">
+        <label for="normal_vision"> I need glasses or contacts, and I wore them during the experiment. </label> <br>
+        <input type="radio" name="normal_vision" value="2" oninput="disable_button()">
+        <label for="normal_vision"> I need glasses or contacts, but I wasn't wearing them during the experiment. </label>
+    </div>
+    <div id="cboxes" align="left" style="position:absolute; z-index:3; top:200px; left:160px; color:white;">
+        <input type="text" name="playback" id="play_text" value="" oninput="disable_button()" style="height: 50px; width: 400px">
+    </div>
+    <script type="text/javascript">
+
+    // Original Author: Cary Stothart
+    // Date: 02/04/2014
+    // Modified by Katherine Wood, October 2015
+
+    //window.onbeforeunload = function() {
+    //    return "Your work will be lost and you will be unable to return to this HIT.";
+    //};
+    
+    document.getElementById("task_data").onsubmit = function(e) {
+      window.onbeforeunload = null;
+      return true;
+    };
+
+    window.onload = function() {
+        //Hide all the form bits for now
+        document.getElementById("task_submit").style.visibility = 'hidden';
+        document.getElementById("count").style.visibility = 'hidden';
+        document.getElementById("myButton").style.visibility = 'hidden';
+        document.getElementById("ibshape").style.visibility = 'hidden';
+        document.getElementById("ibcolor").style.visibility = 'hidden';
+        document.getElementById("agerange").style.visibility = 'hidden';
+        document.getElementById("country").style.visibility = 'hidden';
+        document.getElementById("cboxes").style.visibility = 'hidden';
+        document.getElementById("priorib").style.visibility = 'hidden';
+        document.getElementById("YesNo").style.visibility = 'hidden';
+        document.getElementById("norvis").style.visibility = 'hidden';
+
+        //Define global experiment parameters
+        function padTo2Digits(num) {
+          return num.toString().padStart(2, '0');
+        }
+
+        function formatDate(date) {
+          return (
+            [
+              date.getUTCFullYear(),
+              padTo2Digits(date.getUTCMonth() + 1),
+              padTo2Digits(date.getUTCDate()),
+            ].join('/') +
+            ' ' +
+            [
+              padTo2Digits(date.getUTCHours()),
+              padTo2Digits(date.getUTCMinutes()),
+              padTo2Digits(date.getUTCSeconds()),
+            ].join(':')
+          );
+        }
+
+
+        var Day = formatDate(new Date()); //The Time saved here is in UTC, which is 5 to 6 hours different from CST.
+        console.log(Day);
+        var TimeStart = new Date();
+
+        var canvas = document.getElementById('objects');
+        var canvasFix = document.getElementById('fixation');
+        var context = canvas.getContext('2d');
+        var contextFix = canvasFix.getContext('2d');
+        var stimWidth = 44;
+        var barThickness = Math.round(0.25 * stimWidth);
+        var frameTime = 27;  // Duration in ms of each frame. 33 results in FPS of 30.
+        var numObjects = 8;  // Number of objects total.  Must be an even number.
+        var numTrials = 3;
+        var trialStartTime = 0;
+        var waitTime = 1000;
+        var trialDur = 19000;
+        var ib = false;
+        var ibStart = 5000;
+        var trialSequence = ["pre", "start", "no_ib", "no_ib", "ib", "colib", "shapeib",
+             "demographic", "vision", "playback_pre", "playback", "prior", "end"];
+        // var trialSequence = ["ib", "colib", "shapeib",
+        //    "demographic", "vision", "playback_pre", "playback", "prior", "end"];
+        //Key is the condition code; value is the IB color and the attended set
+        var conditionDict = {
+            0: ["black", "white", "circles", "squares"],
+            1: ["black", "white", "squares", "circles"],
+            2: ["white", "black", "circles", "squares"],
+            3: ["white", "black", "squares", "circles"],
+        };
+        var demo_data = {
+            Day: '',
+            DayEnd: '',
+            age: '',
+            no_problems: '',
+            other_text: '',
+            normal_vision: '',
+            prior: '',
+            priortext: ''
+        };
+        demo_data['Day'] = Day;
+
+        /**
+         * Randomize array element order in-place.
+         * Using Durstenfeld shuffle algorithm.
+         */
+        function shuffle(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function getRadioValue(name, clear) {
+            var group = document.getElementsByName(name);
+            for (var i = 0; i < group.length; i++) {
+                if (group[i].checked) {
+                    val = group[i].value;
+                    if (clear) {
+                        group[i].checked = false;
+                    }
+                    return val;
+                }
+            }
+            return '';
+        }
+
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    return pair[1];
+                }
+            }
+            return (false);
+        }
+
+        function get_condition(callback) {
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    res = xmlhttp.responseText;
+                    callback(res);
+                }
+            };
+            xmlhttp.open("GET", "similarity_greyscale_study3_condition.php?workerId="+getQueryVariable('workerID'), true);
+            xmlhttp.send();
+        }
+
+        function assign_condition(response) {
+            vals = response.split(",");
+            response = parseInt(vals[0]) % 6;
+            workerID = vals[1];
+            console.log(workerID);
+            ineligible_curr = parseInt(vals[2]);
+            ineligible_all = parseInt(vals[3]);
+
+            if ((ineligible_curr + ineligible_all) || !workerID) {
+                window.onbeforeunload = null;
+                window.location = "ineligible.html"
+            }
+
+            ibColorDic = ['midgrey', 'darkgrey', 'lightgrey']
+            ibColor = ibColorDic[Math.floor(Math.random()*ibColorDic.length)]
+            console.log('ibColor', ibColor)
+            ibTypes()
+            function ibTypes() {
+                if (ibColor == 'midgrey') {
+                    ibType = 'midgreyCross';
+                    ibcolors = '#777777';
+                } else if (ibColor == 'darkgrey') {
+                    ibType = 'darkgreyCross';
+                    ibcolors = '#676767';
+                } else if (ibColor == 'lightgrey') {
+                    ibType = 'lightgreyCross';
+                    ibcolors = '#878787';
+                }
+            }
+            console.log('ibType', ibType)
+            var ibshapes = ['cross', 'X', 'L', 'T'];
+            //ibShape = 'T'
+            ibShape = ibshapes[Math.floor(Math.random() * ibshapes.length)];
+            console.log('ibShape', ibShape)
+            rnd = Math.floor(Math.random() * 4)
+            random1 = conditionDict[rnd][1] // randomly chose from black or white
+            random2 = conditionDict[rnd][0] // randomly chose from 4 shades of grey
+            random3 = conditionDict[rnd][2] // randomly chose from black or white
+            random4 = conditionDict[rnd][3] // randomly chose from 4 shades of grey
+            attendedColor = random1; // attended set name for the instructions
+            attendedShape = random3;
+            unattendedColor = random2; //inverse[attendedColor];
+            unattendedShape = random4;
+
+            trial_data = {
+                trialDuration: trialDur,
+                attended_bounces: [],
+                attended_counts: [],
+                resp_full_color: '',
+                resp_full_shape: '',
+                notice_ib: '',
+                attended_obj: attendedColor,
+                ib_type: ibType,
+                ignored_color: random2,
+                resp_ib_color: '',
+                resp_ib_obj: '',
+                notice_full: '',
+                trial_1_acc: '',
+                trial_2_acc: '',
+                trial_3_acc: '',
+                trial_12_acc: '',
+                trial_123_acc: '',
+            };
+            console.log(workerID);
+            console.log(trial_data["trialDuration"]);
+            var studyName = "similarity_greyscale_study3"
+            attended_obj_hex();
+            function attended_obj_hex() {
+                if (attendedColor == "black") {
+                    attended_hex = "#000000";
+                } else if (attendedColor == "white") {
+                    attended_hex = "#FFFFFF"
+                } else if (attendedColor == "grey") {
+                    attended_hex = "#777777"
+                }
+            }
+
+            ignored_obj_hex ();
+            function ignored_obj_hex () {
+                if (random2 == "white") {
+                    ignored_hex = "#FFFFFF";
+                } else if (random2 == "black") {
+                    ignored_hex = "#000000";
+                } else if (random2 == "grey") {
+                    ignored_hex = "#777777";
+                }
+            }
+
+            background_hex = "#7676A7";
+            unexpected_hex = ibcolors;
+
+            console.log('attended_hex', attended_hex);
+            console.log('ignored_hex', ignored_hex);
+            console.log('unexpected_hex', unexpected_hex);
+            console.log('background_hex', background_hex);
+
+            sending();
+            function sending() {
+                document.survey_data.workerID.value = workerID;
+                document.survey_data.studyName.value = studyName;
+                document.task_data.studyName.value = studyName;
+                document.survey_data.start1.value = Day;
+                //document.getElementById('survey_data').submit();
+            }
+            console.log('sending:', sending);
+            console.log('sending:', document.survey_data);
+
+            checkBrowser();
+            function checkBrowser() {
+                if((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1 ) {
+                    browserType = "Opera";
+                    return 'Opera'
+                }
+                else if(navigator.userAgent.indexOf("Edg") != -1 ) {
+                    browserType = "Edge";
+                    return 'Edge'
+                }
+                else if(navigator.userAgent.indexOf("Chrome") != -1 ) {
+                    browserType = "Chrome";
+                    return 'Chrome'
+                }
+                else if(navigator.userAgent.indexOf("Safari") != -1) {
+                    browserType = "Safari";
+                    return 'Safari'
+                }
+                else if(navigator.userAgent.indexOf("Firefox") != -1 ) {
+                    browserType = "Firefox";
+                    return 'Firefox'
+                }
+                else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) {
+                    browserType = "IE";
+                    return 'IE'
+                }
+                else {
+                    browserType = "unknown";
+                    return 'unknown'
+                }
+            }
+
+            console.log(browserType);
+
+            if (checkBrowser() == 'Chrome') {
+                console.log('check');
+            } else if (checkBrowser() == 'Firefox') {
+                console.log('check');
+            } else {
+                end3()
+            }
+        }
+
+        //This is where we'll push the objects once they're created for easy access.
+        var objectArray = []; //window.objectArray
+
+        //A special function to handle the IB response, because this code is a klugey mess
+        //and I don't know how to Javascript
+        function getIBResponse(event) {
+            event.preventDefault();
+            if (trialType == 'ib') {
+                trial_data["notice_ib"] = getRadioValue("prior", true);
+            }
+            document.getElementById("priorib").style.visibility = 'hidden';
+            document.removeEventListener("submit", getIBResponse, false);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById("count").style.visibility = 'hidden';
+            document.getElementById("myButton").style.visibility = 'hidden';
+            //instructions = "An extra object did appear on the last trial. If you saw it, please " +
+            //    "tell us its color and shape. If you didn't see it, please guess. We'll ask about color first. " +
+            //    "Click to continue.";
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            trialType = trialSequence.shift();
+            postTrialQs(trialType)
+            //displayInstructions(instructions);
+        }
+
+        //This function saves the subject response after each trial.
+        function getResponse(event) {
+            event.preventDefault();
+            document.getElementById("count").style.visibility = 'hidden';
+            document.getElementById("myButton").style.visibility = 'hidden';
+            if (trialType == 'ib') {
+                var response = document.getElementById("count").value;
+                document.getElementById("count").value = "";
+                if (response) {
+                    trial_data["attended_counts"].push(response);
+                } else {
+                    trial_data["attended_counts"].push(0);
+                }
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                ibInst = "Did you notice an additional object during the last counting task that wasn't there " +
+                    "on the first two?";
+                document.getElementById("priorib").style.visibility = 'visible';
+                document.getElementById("priortext").style.visibility = 'hidden';
+                document.getElementById("myButton").style.visibility = 'visible';
+                printAtWordWrap(ibInst, canvas.width / 2, canvas.height / 2 - 150, 30, canvas.width - 50);
+                document.addEventListener("submit", getIBResponse, false);
+            } else if (trialType == "colib") {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                trial_data["resp_ib_color"] = getRadioValue("ibRespColor", true);
+                document.getElementById("myButton").style.visibility = 'hidden';
+                document.getElementById("ibcolor").style.visibility = 'hidden';
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType);
+            } else if (trialType == "shapeib") {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                trial_data["resp_ib_shape"] = getRadioValue("ibRespShape", true);
+                document.getElementById("myButton").style.visibility = 'hidden';
+                document.getElementById("ibshape").style.visibility = 'hidden';
+                inst = "Finally, we're going to ask you some questions about yourself and your " +
+                    "experience during the experiment. Your answers will be anonymous and will " +
+                    "not affect your compensation for this study. Click anywhere to continue.";
+                displayInstructions(inst);
+            } else if (trialType == 'no_ib') {
+                var response = document.getElementById("count").value;
+                document.getElementById("count").value = "";
+                if (response) {
+                    trial_data["attended_counts"].push(response);
+                } else {
+                    trial_data["attended_counts"].push(0);
+                }
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                instructions = "On the next screen, you will do the same task. Again, please count the total number of times " +
+                    "any of the four " + attendedColor.toUpperCase() + attendedShape.toUpperCase() + " bounce off of the sides of the rectangle. Click to begin.";
+                displayInstructions(instructions);
+            } else if (trialType == "demographic") {
+                demo_data["age"] = getRadioValue("age", true);
+                demo_data['country'] = document.getElementById("country_options").value;
+                document.getElementById("count").value = "";
+                document.getElementById("agerange").style.visibility = "hidden";
+                document.getElementById("country").style.visibility = "hidden";
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType)
+                //displayInstructions("Click to continue.")
+            } else if (trialType == "playback_pre") {
+                demo_data["no_problems"] = getRadioValue("prior", true);
+                console.log("no_problems", demo_data["no_problems"]);
+                skip();
+            } else if (trialType == "playback") {
+                playresp = document.getElementsByName("playback");
+                for (i = 0; i < playresp.length; i++) {
+                    if (playresp[i].checked) {
+                        demo_data[playresp[i].value] = 1;
+                    }
+                }
+                demo_data["other_text"] = document.getElementById("play_text").value;
+                document.getElementById("cboxes").style.visibility = "hidden";
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType)
+                //displayInstructions("Click to continue.")
+            } else if (trialType == "prior") {
+                demo_data["prior"] = getRadioValue("prior", true);
+                demo_data["priortext"] = document.getElementById("priortext").value;
+                document.getElementById("priorib").style.visibility = "hidden";
+                document.getElementById("priortext").style.visibility = "hidden";
+                //context.clearRect(0, 0, canvas.width, canvas.height);
+                //contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                //trialType = trialSequence.shift();
+                onResponse (trialType == "end");
+                //displayInstructions("Click to continue.")
+            } else if (trialType == "vision") {
+                demo_data["normal_vision"] = getRadioValue("normal_vision", true);
+                //demo_data["normal_color"] = getRadioValue("normal_color", true);
+                document.getElementById("norvis").style.visibility = "hidden";
+                //document.getElementById("norcol").style.visibility = "hidden";
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType)
+                //displayInstructions("Click to continue.")
+            }
+        } //end of response function
+
+
+        //This function specifies the two stimuli types and handles their appearance and movement behavior.
+        function Stim(posX, posY, type, color, dX, dY, ux = false) {
+            colorDict = {
+                //blue: '#0066ff', //1st: #0096ff; 2nd: #0066ff 3rd: #003fff
+                //background: '#6666FF',
+                background: '#6666FF',
+                black: '#000000',
+                grey: "#777777",
+                white: '#FFFFFF',
+                darkgrey: '#676767', //rgb()
+                midgrey: '#777777', //rgb()
+                lightgrey: '#878787', //rgb()
+            };
+            this.speedSwitchTime = Date.now() + Math.floor((Math.random() * 1000)) //point at which object's velocity will change, in ms
+            this.type = type;
+            this.ux = ux;
+            this.color = colorDict[color];
+            this.colorName = color;
+            this.thickness = barThickness;
+            this.width = stimWidth
+            this.boxLeft = this.width / 2;
+            this.boxRight = canvas.width - this.width / 2;
+            this.boxTop = this.width / 2;
+            this.boxBottom = canvas.height - this.width / 2;
+            this.vel = Math.floor((Math.random() * 3) + 2);
+            this.dY = dY;
+            this.dX = dX;
+            this.posX = posX;
+            this.posY = posY;
+            this.bounces = 0;
+            let direction;
+            //Define movement behavior
+            if (this.ux) {
+                if (direction === 1) {
+                    this.dX = -1
+                } else {
+                    this.dX = 1
+                }
+                //this.dX = -1; //the circle moves right to left at a constant rate
+                this.vel = 2;
+                this.move = function () {
+                    this.posX += this.vel * this.dX;
+                }
+            } else {
+                this.move = function () {
+                    //This suite checks to see if the object has collided with the 
+                    //boundary walls, resets the position to inside the walls, and 
+                    //changes the movement direction
+                    if (this.posX > this.boxRight) {
+                        this.posX = this.boxRight;
+                        this.dX *= -1;
+                        this.bounces += 1;
+                    }
+                    if (this.posX < this.boxLeft) {
+                        this.posX = this.boxLeft;
+                        this.dX *= -1;
+                        this.bounces += 1;
+                    }
+                    if (this.posY > this.boxBottom) {
+                        this.posY = this.boxBottom;
+                        this.dY *= -1;
+                        this.bounces += 1;
+                    }
+                    if (this.posY < this.boxTop) {
+                        this.posY = this.boxTop;
+                        this.dY *= -1;
+                        this.bounces += 1;
+                    }
+                    //Checks to see if it's time to switch the velocity of the object
+                    if (Date.now() >= this.speedSwitchTime) {
+                        //If so, pick the next switch time and pick a new velocity
+                        this.speedSwitchTime = Date.now() + Math.floor((Math.random() * 800));
+                        this.vel = Math.floor((Math.random() * 1.5) + 2);
+                        //This clause checks to see whether the object is inside the bounds
+                        //of the box, and then randomly decides whether to change the
+                        //vertical velocity, horizontal velocity, or both.
+                        if ((this.posY > this.boxBottom) && (this.posY < this.boxTop) &&
+                            (this.posX > this.boxLeft) && (this.posX < this.boxRight)) {
+                            this.dX *= [-1, 1][Math.floor((Math.random() * 2))]
+                            this.dY *= [-1, 1][Math.floor((Math.random() * 2))]
+                        }
+                    }
+                    //Update position according to the velocity and movent direction
+                    this.posX += this.vel * this.dX;
+                    this.posY += this.vel * this.dY;
+                } // end of move function
+            }
+            if (this.type == "circles") {
+                this.draw = function () {
+                    context.save();
+                    context.beginPath();
+                    context.arc(this.posX, this.posY, this.width / 2, 0, 2 * Math.PI, false);
+                    context.fillStyle = this.color;
+                    context.fill();
+                    context.lineWidth = barThickness;
+                    context.strokeStyle = this.color;
+                    context.stroke();
+                    context.restore();
+                }
+
+            }
+            else if (this.type == "squares") {
+                this.draw = function() {
+                    context.save();
+                    context.fillStyle = this.color;
+                    context.fillRect(this.posX - this.width / 2, this.posY - this.width / 2, this.width, this.width);
+                    context.restore();
+                }
+            }
+            else if (this.type == "cross") {
+                this.draw = function() {
+                    context.save();
+                    context.beginPath();
+                    context.strokeStyle = this.color;
+                    context.lineWidth = this.width / 4;
+                    // Draw horizontal line
+                    context.moveTo(this.posX - this.width / 2, this.posY);
+                    context.lineTo(this.posX + this.width / 2, this.posY);
+                    // Draw vertical line
+                    context.moveTo(this.posX, this.posY - this.width / 2);
+                    context.lineTo(this.posX, this.posY + this.width / 2);
+                    context.stroke();
+                    context.restore();
+                }
+            }
+            else if (this.type == "X") {
+                this.draw = function() {
+                    context.save();
+                    context.beginPath();
+                    context.strokeStyle = this.color;
+                    context.lineWidth = this.width / 4;
+                    // Draw first line of X
+                    context.moveTo(this.posX - this.width / 2, this.posY - this.width / 2);
+                    context.lineTo(this.posX + this.width / 2, this.posY + this.width / 2);
+                    // Draw second line of X
+                    context.moveTo(this.posX + this.width / 2, this.posY - this.width / 2);
+                    context.lineTo(this.posX - this.width / 2, this.posY + this.width / 2);
+                    context.stroke();
+                    context.restore();
+                }
+            }
+            else if (this.type == "L") {
+                this.draw = function() {
+                    context.save();
+                    context.beginPath();
+                    context.strokeStyle = this.color;
+                    context.lineWidth = this.width / 4;
+                    // Draw vertical line for the L
+                    context.moveTo(this.posX - this.width / 2, this.posY - this.width / 2.5);
+                    context.lineTo(this.posX - this.width / 2, this.posY + this.width / 2.5);
+                    // Draw horizontal line for the bottom of the L
+                    context.moveTo(this.posX - this.width / 1.6, this.posY + this.width / 2.5);
+                    context.lineTo(this.posX, this.posY + this.width / 2.5);
+                    context.stroke();
+                }
+            }
+            else if (this.type == "T") {
+                this.draw = function() {
+                    context.save();
+                    context.beginPath();
+                    context.strokeStyle = this.color;
+                    context.lineWidth = this.width / 4;
+                    // Draw horizontal line for the top of the T
+                    context.moveTo(this.posX - this.width / 2.5, this.posY - this.width / 2);
+                    context.lineTo(this.posX + this.width / 2.5, this.posY - this.width / 2);
+                    // Draw a longer vertical line for the T
+                    context.moveTo(this.posX, this.posY - this.width / 2);
+                    context.lineTo(this.posX, this.posY + this.width / 3); // Adjust the Y endpoint to be less negative
+                    context.stroke();
+                    context.restore();
+                }
+            }
+            objectArray.push(this);
+        }
+
+        // end of class Stim
+
+        // This function initializes the stimuli (half checkerboards, half squares) to
+        // a random position in the box with random directional velocities.
+        //var level = 0
+        function createAndPlaceObjects(numObjects) {
+            console.log('-----creating--------')
+            objectArray = []
+            //var shapes = ['circles', 'squares', 'circles', 'squares'];
+            //shapes = shuffle(shapes);
+            var attend_color = random1
+            var attend_shape = random3
+            var ignore_color = random2
+            var ignore_shape = random4
+            var colors = [attend_color, attend_color, ignore_color, ignore_color, attend_color, attend_color, ignore_color, ignore_color];
+            var shapes = [attend_shape, attend_shape, attend_shape, attend_shape, ignore_shape, ignore_shape, ignore_shape, ignore_shape];
+            console.log('attend_color:', attend_color)
+            console.log('ignore_color:', ignore_color)
+            console.log('attend_shape:', attend_shape)
+            console.log('ignore_shape:', ignore_shape)
+            //level += 1
+
+
+            for (i = 0; i < numObjects; i++) {
+                //var shape = shapes[i % 4];
+                x = Math.floor((Math.random() * (canvas.width - stimWidth / 2)))
+                y = Math.floor((Math.random() * (canvas.height - stimWidth / 2)))
+                xDir = [-1, 1][Math.floor((Math.random() * 2))]
+                yDir = [-1, 1][Math.floor((Math.random() * 2))]
+                window[shapes[i] + colors[i]] = new Stim(x, y, shapes[i], colors[i], xDir, yDir);
+            }
+        } // end of create and place function
+
+        // Thanks to StackOverflow user Gaby Petrioli for this function
+        // This function takes in a multiline string and handles writing
+        // it to the canvas.
+        function printAtWordWrap(text, x, y, lineHeight, fitWidth) {
+            fitWidth = fitWidth || 0;
+            if (fitWidth <= 0) {
+                context.fillText(text, x, y);
+                return;
+            }
+            var words = text.split(' ');
+            var currentLine = 0;
+            var idx = 1;
+            while (words.length > 0 && idx <= words.length) {
+                index = 1;
+                var str = words.slice(0, idx).join(' ');
+                var w = context.measureText(str).width;
+                if (w > fitWidth) {
+                    if (idx == 1) {
+                        idx = 2;
+                    }
+                    context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+                    currentLine++;
+                    words = words.splice(idx - 1);
+                    idx = 1;
+                } else {
+                    idx++;
+                }
+            }
+            if (idx > 0) {
+                context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+            }
+        }
+
+        //Set up the animation callback
+        window.requestAnimationFrame = function (callback) {
+            return window.setTimeout(callback, frameTime);
+        }
+        window.cancelAnimationFrame = window.clearTimeout;
+
+        function runAnimLoop() {
+            anim = window.requestAnimationFrame(runAnimLoop, canvas);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            //fix.draw();
+            currTime = new Date();
+            trialTime = currTime - trialStartTime
+            if ((trialType == 'ib' || trialType == "full_attend") && (trialTime >= ibStart)) {
+                unexObj.move();
+                unexObj.draw();
+            }
+            objectArray.forEach(function (element) {
+                if (!element.ux) {
+                    element.move();
+                    element.draw();
+                }
+            });
+        } //end of animation loop function
+
+        function singleTrial(trialType) {
+            //fix = new Fixation(canvasFix.width / 2, canvasFix.height / 2 - 10, barThickness);
+            if (trialType == 'ib' || trialType == "full_attend") {
+                var direction = Math.random() < 0.5 ? -1 : 1;
+                var startX = direction === -1 ? -30 : canvas.width + 30;
+                console.log('startX:', startX)
+                console.log('direction:', direction)
+                unexObj = new Stim(startX, canvas.height / 2, ibShape, ibColor, -1, 0, ux = true);
+                //unexObj = new Stim(canvas.width + 30, canvas.height / 2, ibShape, ibColor, -1, 0, ux = true);
+            }
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            //fix.draw()
+            objectArray.forEach(function (element) {
+                element.draw()
+            });
+
+            //Pause before starting the animation
+            setTimeout(function () {
+                trialStartTime = Date.now();
+                runAnimLoop(ib);
+            }, waitTime);
+
+            //Let the animation run, then handle response capture
+            setTimeout(function () {
+                window.cancelAnimationFrame(anim);
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trial_bounces = 0
+                for (i = 0; i < numObjects; i++) {
+                    if (objectArray[i].colorName == attendedColor) {
+                        trial_bounces += objectArray[i].bounces;
+                        objectArray[i].bounces = 0;
+                    }
+                }
+                if (trialType != 'full_attend') {
+                    trial_data["attended_bounces"].push(trial_bounces)
+                    console.log('trial_bounces', trial_bounces)
+                    printAtWordWrap("In the box below, please enter the total number of times the four " + attendedColor.toUpperCase() + " circles bounced off the edges of the blue rectangle.", canvas.width / 2,
+                        canvas.height / 2 - 150, 30, canvas.width - 50);
+                    document.addEventListener("submit", getResponse, false);
+                    document.getElementById("count").style.visibility = 'visible';
+                    document.getElementById("myButton").style.visibility = 'visible';
+                } else {
+                    fullinst = "Did you notice an extra object on that trial?";
+                    printAtWordWrap(fullinst, canvas.width / 2,
+                        canvas.height / 2 - 150, 30, canvas.width - 50);
+                    document.addEventListener("submit", getIBResponse, false);
+                    document.getElementById("priorib").style.visibility = 'visible';
+                    document.getElementById("priortext").style.visibility = 'hidden';
+                    document.getElementById("myButton").style.visibility = 'visible';
+                }
+                //Set up the input event listeners and direct both to the same function
+            }, trialDur);
+        } //end of single trial function
+
+        function calculate() {
+            let actual_bounces_t1 = trial_data.attended_bounces[0]
+            let actual_bounces_t2 = trial_data.attended_bounces[1]
+            let actual_bounces_t3 = trial_data.attended_bounces[2]
+            let count_bounces_t1 = parseInt(trial_data.attended_counts[0])
+            let count_bounces_t2 = parseInt(trial_data.attended_counts[1])
+            let count_bounces_t3 = parseInt(trial_data.attended_counts[2])
+            percent1 = ((Math.abs(count_bounces_t1 - actual_bounces_t1)/actual_bounces_t1))*100;
+            percent2 = ((Math.abs(count_bounces_t2 - actual_bounces_t2)/actual_bounces_t2))*100;
+            percent3 = ((Math.abs(count_bounces_t3 - actual_bounces_t3)/actual_bounces_t3))*100;
+            percent4 = (percent1 + percent2 + percent3)/3;
+            trial_1_acc = 100 - percent1;
+            trial_2_acc = 100 - percent2;
+            trial_3_acc = 100 - percent3;
+            trial_12_acc = 100 - ((percent1 + percent2)/2);
+            trial_123_acc = 100 - ((percent1 + percent2 + percent3)/3);
+            trial_data["trial_1_acc"] = trial_1_acc;
+            trial_data["trial_2_acc"] = trial_2_acc;
+            trial_data["trial_3_acc"] = trial_3_acc;
+            trial_data["trial_123_acc"] = trial_123_acc;
+            trial_data["trial_12_acc"] = trial_12_acc;
+            if (percent4 > 100 || percent4 < 0) {
+                percent = "N/A";
+            } else if (percent4 <= 50 && percent4 > 15) {
+                percent = Math.round(percent4);
+                demo_data["entries"] = 1;
+            } else if (percent4 <= 15 && percent4 >= 0) {
+                percent = Math.round(percent4);
+                demo_data["entries"] = 2;
+            } else {
+                percent = Math.round(percent4);
+                demo_data["entries"] = 0;
+            }
+            console.log("trial_12_acc", trial_data["trial_12_acc"])
+            console.log("trial_123_acc", trial_data["trial_123_acc"])
+        }
+
+        function postTrialQs(info) {
+            posx = canvas.width / 2;
+            posy = canvas.height / 2 - 150;
+            if (info == "demographic") {
+                instr = "Please provide your age and the country in which you currently live."
+                document.getElementById("agerange").style.visibility = 'visible';
+                document.getElementById("country").style.visibility = 'visible';
+            } else if (info == "playback_pre") {
+                instr = "Did the animation play smoothly, with no obvious lagging or freezing?";
+                document.getElementById("YesNo").style.visibility = 'visible';
+            } else if (info == "playback") {
+                instr = "Please describe the playback issues you experienced.";
+                document.getElementById("cboxes").style.visibility = 'visible';
+            } else if (info == "prior") {
+                calculate();
+                instr = "Have you performed a similar task before, where you were asked to keep track of " +
+                    "many moving shapes, and something unexpected appeared? If you have, please briefly " +
+                    "describe it in the text box. Your answer will not affect " +
+                    "your compensation for completing this study."
+                posy = canvas.height / 2 - 200;
+                document.getElementById("priorib").style.visibility = 'visible';
+                document.getElementById("priortext").style.visibility = 'visible';
+            } else if (info == "vision") {
+                //printAtWordWrap("Please describe your color vision.", canvas.width / 2,
+                //    canvas.height / 2 + 80, 30, canvas.width - 50)
+                instr = "Please describe your vision."
+                document.getElementById("norvis").style.visibility = 'visible';
+                //document.getElementById("norcol").style.visibility = 'visible';
+            } else if (info == "colib") {
+                instr = "There actually was an extra object. If you saw it, " +
+                        "please indicate what you saw. If you didn't see it, please guess. " +
+                        "What was the color of the extra object?";
+                document.getElementById("ibcolor").style.visibility = 'visible';
+            } else if (info == "shapeib") {
+                instr = "What was the shape of the extra object? If you didn't see it, please guess.";
+                document.getElementById("ibshape").style.visibility = 'visible';
+            }
+            printAtWordWrap(instr, posx, posy, 30, canvas.width - 50);
+            document.addEventListener("submit", getResponse, false);
+            document.getElementById("myButton").style.visibility = 'visible';
+        }
+
+        skip = function () {
+            if (demo_data["no_problems"] == '0') {
+                document.getElementById("YesNo").style.visibility = 'hidden';
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType)
+                //displayInstructions("Click to continue.")
+            } else if (demo_data["no_problems"] == '1') {
+                document.getElementById("YesNo").style.visibility = 'hidden';
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                contextFix.clearRect(0, 0, canvas.width, canvas.height);
+                trialType = trialSequence.shift();
+                postTrialQs(trialType)
+                //displayInstructions("Click to continue.")
+            }
+        }
+
+        displayInstructions = function (instructions) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            context.textAlign = "center";
+            context.font = "20px Arial";
+            context.fillStyle = "#FFFFFF";
+            printAtWordWrap(instructions, canvas.width / 2,
+                            canvas.height / 2 - 150, 30, canvas.width - 50)
+            document.addEventListener("click", onResponse, false)
+        }
+
+        displayInstructions2 = function (instructions) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            context.textAlign = "center";
+            context.font = "20px Arial";
+            context.fillStyle = "#FFFFFF";
+            printAtWordWrap(instructions, canvas.width / 2,
+                            canvas.height / 2 - 200, 25, canvas.width - 50)
+        }
+
+        //This takes the response from the "click to continue" screens and
+        //advances to the next trial.
+        trialType = "pre";
+        onResponse = function () {
+            onclick=openFullscreen();
+            document.removeEventListener("click", onResponse, false)
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            trialType = trialSequence.shift();
+            if (trialType == "pre") {
+                inst = "In this task, you will see a blue rectangle with 4 " + attendedColor.toUpperCase() + " circles " +
+                    "and 4 " + unattendedColor.toUpperCase() +" circles. " +
+                    "After a moment, the circles will begin moving and bouncing off the sides of the rectangle. " +
+                    "Click anywhere to continue."
+                displayInstructions(inst)
+            } else if (trialType == 'start') {
+                inst = "Please count the total number of times any of the four " + attendedColor.toUpperCase() + " circles bounce off " +
+                    "of the sides of the blue rectangle. Do not count bounces by the " +
+                    unattendedColor + " circles. You will be asked to report your total count. " +
+                    "Click anywhere to begin.";
+                displayInstructions(inst)
+            } else if (trialType == "draw1") {
+                inst = "The total counts you reported were off by " + percent + "% from the actual counts, on average. " +
+                    "Anyone whose average accuracy was within 50% of the correct counts will be entered into the drawing for " +
+                    "a bonus payment. Anyone whose average counting accuracy was within 15% of the correct counts will receive two " +
+                    "entries in the drawing. Click to continue."
+                displayInstructions(inst)
+            } else if (trialType == "demographic" || trialType == "playback_pre" || trialType == "playback" || trialType == "vision" ||
+                trialType == "prior" || trialType == "shapeib" || trialType == "colib" ||
+                trialType == "colfull" || trialType == "shapefull") {
+                postTrialQs(trialType)
+            } else if (trialType != 'end') {
+                createAndPlaceObjects(numObjects)
+                singleTrial(trialType)
+            } else {
+                end()
+            }
+        }
+
+
+        function main() {
+            document.getElementById("all").style.visibility = "visible";
+            get_condition(assign_condition);
+            //assign_condition();
+            document.getElementById("count").style.visibility = 'hidden';
+            document.getElementById("myButton").style.visibility = 'hidden';
+            var initial_instructions = "WARNING: This experiment will only run in Chrome or Firefox browser. " +
+                "If you are using any other browsers, the experiment will not work and you will not be able to complete the study. " +
+                "                                                         " +
+                "                                                         " +
+                "     " +
+                "IMPORTANT: In order to receive compensation for this study, " +
+                "           you need " +
+                "to remain focused on the experiment browser window throughout the task. " +
+                "If you switch to a different tab/window, the experiment will end and " +
+                "you will not receive a completion code and will not receive payment. " +
+                "                                                         " +
+                "                                                         " +
+                "                                                         " +
+                "           " +
+                "Click anywhere to continue."
+
+            //console.log(initial_instructions);
+            //createAndPlaceObjects(numObjects);
+            displayInstructions(initial_instructions)
+        } // end of main
+
+        //function linebreak() {
+
+        //This function clears out hte display, writes the trial matrix to the hidden form, and 
+        //passes the data to the PHP file to be written to the database.
+
+        function end3() {
+            var TimeEnd3 = new Date();
+            duration3 = Math.round((TimeEnd3.getTime() - TimeStart.getTime())/1000);
+            document.survey_data.duration3.value = duration3;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            document.removeEventListener("click", onResponse, false)
+
+            let all = document.getElementById('all')
+            all.style.display = 'none';
+            document.getElementById('fail_message_2').style.display = 'block';
+            document.getElementById('survey_data').submit();
+        }
+
+
+        function end() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            contextFix.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillText("Thank you for completing the task!", canvas.width / 2,
+                canvas.height / 2);
+            var debrief = "Thank you for participating in on our study. " +
+                "We are examining a phenomenon known as inattentional blindness: " +
+                "When people focus attention on a challenging task, they tend not to notice other unexpected objects in the display. " +
+                "In this study, we're exploring whether the similarity of the attended and ignored shapes affects noticing. " +
+                "The study has 6 different conditions, and each participant experienced one of them. Both attended and ignored objects were either " +
+                "white, black or grey (randomly determined). " +
+                "We're exploring whether people are more or less likely " +
+                "to notice the unexpected object (it was a grey cross) if the shapes they are attending and ignoring are more similar " +
+                "to each other. If you would like more information about the study or if you have any questions, you can message us via Prolific.";
+            displayInstructions2(debrief);
+            context.fillText("Please click on the button below to complete the study.", canvas.width / 2,
+                canvas.height / 2 + 250);
+            DayEnd = formatDate(new Date());
+            demo_data["DayEnd"] = DayEnd;
+            var TimeEnd = new Date();
+            duration = Math.round((TimeEnd.getTime() - TimeStart.getTime())/1000);
+            console.log(duration);
+            document.task_data.workerID.value = workerID;
+            document.task_data.start.value = demo_data["Day"];
+            document.task_data.end.value = demo_data["DayEnd"];
+            document.task_data.duration.value = duration;
+            document.task_data.browserType.value = browserType;
+            document.task_data.t1_bounces.value = trial_data["attended_bounces"][0];
+            document.task_data.t2_bounces.value = trial_data["attended_bounces"][1];
+            document.task_data.t3_bounces.value = trial_data["attended_bounces"][2];
+            document.task_data.t1_counts.value = trial_data["attended_counts"][0];
+            document.task_data.t2_counts.value = trial_data["attended_counts"][1];
+            document.task_data.t3_counts.value = trial_data["attended_counts"][2];
+            document.task_data.attended_color.value = trial_data["attended_obj"];
+            document.task_data.ignored_color.value = trial_data["ignored_color"];
+            document.task_data.ib_type.value = trial_data["ib_type"];
+            document.task_data.resp_ib_color.value = trial_data["resp_ib_color"];
+            document.task_data.resp_ib_shape.value = trial_data["resp_ib_shape"];
+            document.task_data.noticed_ib.value = trial_data["notice_ib"];
+            document.task_data.age_resp.value = demo_data["age"];
+            document.task_data.country_resp.value = demo_data["country"];
+            document.task_data.no_problems.value = demo_data["no_problems"];
+            document.task_data.other_text.value = demo_data["other_text"];
+            document.task_data.normal_vis.value = demo_data["normal_vision"];
+            document.task_data.trial_1_acc.value = trial_data["trial_1_acc"];
+            document.task_data.trial_2_acc.value = trial_data["trial_2_acc"];
+            document.task_data.trial_3_acc.value = trial_data["trial_3_acc"];
+            document.task_data.trial_12_acc.value = trial_data["trial_12_acc"];
+            document.task_data.trial_123_acc.value = trial_data["trial_123_acc"];
+            document.task_data.prior_resp.value = demo_data["prior"];
+            document.task_data.prior_text.value = demo_data["priortext"];
+            document.task_data.attended_hex.value = attended_hex;
+            document.task_data.ignored_hex.value = ignored_hex;
+            document.task_data.unexpected_hex.value = unexpected_hex;
+            document.task_data.background_hex.value = background_hex;
+            document.task_data.trialDuration.value = trial_data["trialDuration"];
+            document.removeEventListener("submit", getResponse, false);
+            document.removeEventListener("click", onResponse, false)
+            document.getElementById("task_submit").style.visibility = 'visible';
+            document.getElementById("task_submit").addEventListener("submit");
+        } //end of end (har har)
+        main()
+    } // end of onload function
+    </script>
+    <input type="hidden" name="studyName" value="">
+    <input type="hidden" name="workerID" value="">
+    <input type="hidden" name="start" value="">
+    <input type="hidden" name="end" value="">
+    <input type="hidden" name="duration" value="">
+    <input type="hidden" name="browserType" value="">
+    <input type="hidden" name="t1_bounces" value="">
+    <input type="hidden" name="t2_bounces" value="">
+    <input type="hidden" name="t3_bounces" value="">
+    <input type="hidden" name="t1_counts" value="">
+    <input type="hidden" name="t2_counts" value="">
+    <input type="hidden" name="t3_counts" value="">
+    <input type="hidden" name="attended_color" value="">
+    <input type="hidden" name="ignored_color" value="">
+    <input type="hidden" name="ib_type" value="">
+    <input type="hidden" name="noticed_ib" value="">
+    <input type="hidden" name="resp_ib_color" value="">
+    <input type="hidden" name="resp_ib_shape" value="">
+    <input type="hidden" name="age_resp" value="">
+    <input type="hidden" name="country_resp" value="">
+    <input type="hidden" name="no_problems" value="">
+    <input type="hidden" name="other_text" value="">
+    <input type="hidden" name="normal_vis" value="">
+    <input type="hidden" name="trial_1_acc" value="">
+    <input type="hidden" name="trial_2_acc" value="">
+    <input type="hidden" name="trial_3_acc" value="">
+    <input type="hidden" name="trial_12_acc" value="">
+    <input type="hidden" name="trial_123_acc" value="">
+    <input type="hidden" name="prior_resp" value="">
+    <input type="hidden" name="prior_text" value="">
+    <input type="hidden" name="attended_hex" value="">
+    <input type="hidden" name="ignored_hex" value="">
+    <input type="hidden" name="unexpected_hex" value="">
+    <input type="hidden" name="background_hex" value="">
+    <input type="hidden" name="trialDuration" value="">
+    <input type="submit" id="task_submit" name="task_submit" value="Finish">
+    </fieldset>
+    </form>
+</div>
+</body>
+</html>

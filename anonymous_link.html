@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anonymize Link Example</title>
+    <script type="text/javascript">
+        function anonymizeLink() {
+            var baseLink = "http://localhost/prolific/prolific.html?PROLIFIC_PID=ss&STUDY_ID=test&SESSION_ID=1";
+            var anonymizedPart = Math.random().toString(36).substr(2, 5); // Generate a random string
+
+            // Replace the 'ss3' part of the 'PROLIFIC_PID' parameter
+            var fullLink = baseLink.replace("PROLIFIC_PID=ss", "PROLIFIC_PID=" + anonymizedPart);
+
+            document.getElementById("anonymizedLink").href = fullLink;
+            document.getElementById("anonymizedLink").innerHTML = fullLink;
+        }
+    </script>
+</head>
+<body onload="anonymizeLink()">
+    <p>Click the link below:</p>
+    <a id="anonymizedLink" href="#">Loading...</a>
+</body>
+</html>

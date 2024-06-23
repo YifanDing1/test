@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<script>
+    // Define your links here
+    const links = [
+        'http://simonslab.com/mot/LoadSearch/LoadSearch.html',
+    ];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const subjectCode = urlParams.get('subject_code') || 'error';
+
+    function goToNextLink() {
+        var nextLink = links[0] + "?subject_code=" + subjectCode;
+        window.location.href = nextLink;
+    }
+
+    // Call the function to initiate the process
+    goToNextLink();
+</script>
+</body>
+</html>

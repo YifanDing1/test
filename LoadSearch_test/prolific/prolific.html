@@ -1,0 +1,89 @@
+<html lang="English">
+<head>
+    <title>Demo</title>
+    <script src="jspsych.js"></script>
+    <script src="jspsych-instructions.js"></script>
+    <link href="jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+<body></body>
+<script>
+    let TimeStart = new Date().toISOString();
+    console.log(TimeStart)
+
+    let jsPsych = initJsPsych({
+        on_finish() {
+            let subjectCode = generateSubjectCode();
+            let data = {
+                subject_id: jsPsych.data.getURLVariable('PROLIFIC_PID'),
+                study_id: jsPsych.data.getURLVariable('STUDY_ID'),
+                session_id: jsPsych.data.getURLVariable('SESSION_ID'),
+                start: TimeStart,
+                subject_code: subjectCode
+            };
+            sendToServer(data)
+                .then((response) => {
+                    if (response === "Prolific ID and Subject Code updated successfully.") {
+                        let nextTaskUrl = "http://simonslab.com/mot/LoadSearch/prolific/task_index.html";
+                        nextTaskUrl += "?subject_code=" + encodeURIComponent(subjectCode);
+                        window.location.href = nextTaskUrl;
+                    } else {
+                        // Remove the existing jsPsych content
+                        document.body.innerHTML = '';
+                        // Create a new div element to display the error message
+                        let errorDiv = document.createElement('div');
+                        errorDiv.innerHTML = response;
+                        errorDiv.style.textAlign = 'center';
+                        errorDiv.style.fontSize = '20px';
+                        errorDiv.style.marginTop = '50px';
+
+                        // Append the error div to the body
+                        document.body.appendChild(errorDiv);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sending data:', error);
+                });
+        }
+    });
+
+    function generateSubjectCode() {
+        return Math.floor(Math.random() * 900000000) + 100000000;
+    }
+
+    let instruction = {
+        type: jsPsychInstructions,
+        pages: function(){
+            pageOne = '<div style="font-size:20px;"><br><br><br>Welcome <br><br>This study examines people\'s perception, attention and memory. <br> You will need to complete a series of tasks. <br><br> Click \'Start\' to begin the study. <br><br><br></div>'
+            return [pageOne]
+        },
+        allow_backward: false,
+        button_label_next: "Start",
+        show_clickable_nav: true,
+    }
+
+    function sendToServer(data) {
+        return new Promise((resolve, reject) => {
+            console.log("Data being sent to server:", data);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'data.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log("Server response:", xhr.responseText); // Log the server's response
+                    resolve(xhr.responseText); // Pass the response to the resolve function
+                } else {
+                    reject(new Error('Request failed. Status: ' + xhr.status));
+                }
+            };
+            xhr.onerror = function() {
+                reject(new Error('Request failed. Network error.'));
+            };
+            xhr.send(JSON.stringify(data));
+        });
+    }
+
+    let timeline = [];
+
+    timeline.push(instruction);
+    jsPsych.run(timeline)
+</script>

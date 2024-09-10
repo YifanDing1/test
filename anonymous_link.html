@@ -15,14 +15,14 @@
                 var fullLink = baseLinks[i].replace("PROLIFIC_PID=ss", "PROLIFIC_PID=" + anonymizedPart);
                 var linkElement = document.getElementById("anonymizedLink" + (i + 1));
                 linkElement.href = fullLink;
-                linkElement.innerHTML = fullLink;
+                linkElement.innerHTML = "Study " + (i + 1);
             }
         }
     </script>
 </head>
 <body onload="anonymizeLinks()">
     <p>Click the links below:</p>
-    <p><a id="study1" href="#">Loading...</a></p>
-    <p><a id="study2" href="#">Loading...</a></p>
+    <p><a id="anonymizedLink1" href="#">Loading...</a></p>
+    <p><a id="anonymizedLink2" href="#">Loading...</a></p>
 </body>
 </html>

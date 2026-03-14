@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inattentional Blindness Experiment - Face UEO v2</title>
+    <style>
+        /* STYLING */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        #experimentContainer {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #canvasContainer {
+            text-align: center;
+            min-height: 600px;
+        }
+
+        #canvas {
+            display: block;
+            margin: 20px auto;
+            border: 2px solid #333;
+            background-color: #797979;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        input[type="number"] {
+            font-size: 16px;
+            padding: 5px;
+            width: 80px;
+            margin: 5px;
+        }
+
+        input[type="text"] {
+            font-size: 16px;
+            padding: 5px;
+            width: 300px;
+            margin: 5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #instructions {
+            text-align: center;
+            margin: 20px;
+            font-size: 18px;
+            line-height: 1.5;
+            min-height: 200px;
+            padding: 40px;
+        }
+
+        .response-section {
+            background: #f9f9f9;
+            padding: 40px;
+            border-radius: 5px;
+            margin: 10px auto;
+            min-height: 300px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .choice-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #797979;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .choice-button:hover {
+            border-color: #4CAF50;
+            background-color: #8a8a8a;
+        }
+
+        .choice-button.selected {
+            border-color: #4CAF50;
+            background-color: #6a8a6a;
+        }
+
+        .choice-button img {
+            display: block;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .screen {
+            min-height: 500px;
+        }
+
+        /* Face preview in instructions */
+        .face-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .face-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border: 2px solid #999;
+            border-radius: 8px;
+            background-color: #797979;
+            padding: 4px;
+        }
+
+        .face-preview p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Loading screen */
+        #loadingScreen {
+            text-align: center;
+            padding: 60px 40px;
+            font-size: 20px;
+        }
+
+        #loadingScreen .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="experimentContainer">
+        <!-- Hidden form for data submission -->
+        <form id="task_data" name="task_data" action="data.php" method="post">
+            <input type="hidden" name="study_name" value="">
+            <input type="hidden" name="subject_code" value="">
+            <input type="hidden" name="start_time" value="">
+            <input type="hidden" name="end_time" value="">
+            <input type="hidden" name="duration" value="">
+            <input type="hidden" name="background_color" value="">
+            <input type="hidden" name="attended_face" value="">
+            <input type="hidden" name="ignored_face" value="">
+            <input type="hidden" name="ueo_face" value="">
+            <input type="hidden" name="ueo_match_type" value="">
+            <input type="hidden" name="bounce_angle_variation" value="">
+            <input type="hidden" name="min_angle_from_wall" value="">
+            <input type="hidden" name="perturbation_interval_min" value="">
+            <input type="hidden" name="perturbation_interval_max" value="">
+            <input type="hidden" name="perturbation_amount" value="">
+            <input type="hidden" name="speed_min" value="">
+            <input type="hidden" name="speed_max" value="">
+            <input type="hidden" name="unexpected_object_speed" value="">
+            <input type="hidden" name="unexpected_object_direction" value="">
+            <!-- Distractor info -->
+            <input type="hidden" name="num_attended" value="">
+            <input type="hidden" name="num_ignored" value="">
+            <input type="hidden" name="distractor_positions" value="">
+            <input type="hidden" name="distractor_motion" value="">
+            <!-- Trial 1 (Practice 1) -->
+            <input type="hidden" name="trial1_bounces" value="">
+            <input type="hidden" name="trial1_count" value="">
+            <input type="hidden" name="trial1_accuracy" value="">
+            <!-- Trial 2 (Practice 2) -->
+            <input type="hidden" name="trial2_bounces" value="">
+            <input type="hidden" name="trial2_count" value="">
+            <input type="hidden" name="trial2_accuracy" value="">
+            <!-- Trial 3 (Critical) -->
+            <input type="hidden" name="trial3_bounces" value="">
+            <input type="hidden" name="trial3_count" value="">
+            <input type="hidden" name="trial3_accuracy" value="">
+            <input type="hidden" name="trial3_noticed" value="">
+            <input type="hidden" name="trial3_face_choice" value="">
+            <!-- Trial 4 (Divided) -->
+            <input type="hidden" name="trial4_bounces" value="">
+            <input type="hidden" name="trial4_count" value="">
+            <input type="hidden" name="trial4_accuracy" value="">
+            <input type="hidden" name="trial4_noticed" value="">
+            <input type="hidden" name="trial4_face_choice" value="">
+            <!-- Accuracy summary -->
+            <input type="hidden" name="practice_accuracy_avg" value="">
+            <!-- Playback questions -->
+            <input type="hidden" name="run_smoothly" value="">
+            <input type="hidden" name="glitches_description" value="">
+        </form>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="screen">
+            <div class="spinner"></div>
+            <p>Loading experiment images...</p>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructionScreen" class="screen hidden">
+            <div id="instructions">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- Canvas Screen (for animation) -->
+        <div id="canvasScreen" class="screen hidden">
+            <div id="canvasContainer">
+                <canvas id="canvas" width="666" height="546"></canvas>
+            </div>
+        </div>
+
+        <!-- Response Input Screen -->
+        <div id="responseScreen" class="screen hidden">
+            <div id="responseSection" class="response-section">
+                <h2 id="responsePrompt">Enter your count:</h2>
+                <div id="singleCount">
+                    <label>Total bounces: </label>
+                    <input type="number" id="countInput" min="0" max="100">
+                    <br><br>
+                    <button id="submitCount" onclick="experiment.submitResponse()">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yes/No Question Screen -->
+        <div id="yesNoScreen" class="screen hidden">
+            <div id="yesNoSection" class="response-section">
+                <h2 id="yesNoQuestion">Did you notice anything unusual?</h2>
+                <button class="yesno-btn" onclick="experiment.submitYesNo('Yes')">Yes</button>
+                <button class="yesno-btn" onclick="experiment.submitYesNo('No')">No</button>
+            </div>
+        </div>
+
+        <!-- Face Selection Screen (4AFC with images) -->
+        <div id="faceSelectionScreen" class="screen hidden">
+            <div id="faceSelectionSection" class="response-section">
+                <h2>There actually was an extra face that moved across the screen. If you saw it, please select the face you saw. If you didn't see it, please guess.</h2>
+                <div id="faceChoicesContainer" style="display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap;">
+                    <!-- Face choice buttons will be populated dynamically -->
+                </div>
+                <button onclick="experiment.submitFaceChoice()">Submit Choice</button>
+            </div>
+        </div>
+
+        <!-- Playback Questions Screen -->
+        <div id="playbackScreen" class="screen hidden">
+            <div id="playbackSection" class="response-section">
+                <h2 id="playbackQuestion">Did the animation play smoothly?</h2>
+                <button class="playback-btn" onclick="experiment.submitPlayback('Yes')">Yes</button>
+                <button class="playback-btn" onclick="experiment.submitPlayback('No')">No</button>
+            </div>
+        </div>
+
+        <!-- Glitches Description Screen -->
+        <div id="glitchesScreen" class="screen hidden">
+            <div id="glitchesSection" class="response-section">
+                <h2>Please describe the playback issues you experienced:</h2>
+                <input type="text" id="glitchesInput" placeholder="Describe any issues...">
+                <br><br>
+                <button onclick="experiment.submitGlitches()">Submit</button>
+            </div>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="finalScreen" class="screen hidden">
+            <div id="finalSection" class="response-section">
+                <h2>Thank you for completing the task!</h2>
+                <p>Click 'Continue' to go back to Prolific.</p>
+                <button id="finalSubmit" onclick="experiment.submitData()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // EXPERIMENT CONTROLLER
+        // Face UEO v2: 3 attended + 3 ignored face images (bouncing).
+        // Structure follows IB_schematic_face (static frame + SPACE
+        // to start, overlap-checked placement) with image-based
+        // stimuli and gray (#797979) background from IB_face.
+        //
+        // UEO is a face (matching attended or ignored) that moves
+        // horizontally across the screen midline.
+        // After noticing question, 4AFC face identification
+        // (UEO face + 3 foil faces).
+        // ============================================================
+        const experiment = {
+            // ── Image assets ──────────────────────────────────────
+            imageConfig: {
+                basePath: 'Assets/',
+                faceA: 'face_A.png',
+                faceB: 'face_B.png',
+                foils: [
+                    'foil_1.png',
+                    'foil_2.png',
+                    'foil_3.png'
+                ]
+            },
+
+            // Loaded Image objects
+            images: {
+                faceA: null,
+                faceB: null,
+                foils: []
+            },
+
+            // ── Configuration ─────────────────────────────────────
+            config: {
+                numAttended: 3,
+                numIgnored: 3,
+                ignoredMidlineBuffer: 50,
+                trialDuration: 19000,        // 19 seconds
+                unexpectedObjectStart: 5000, // UEO appears at 5 seconds
+                canvasWidth: 666,
+                canvasHeight: 546,
+                objectSize: 80,
+                backgroundColor: '#797979',
+
+                // Motion variation settings
+                bounceAngleVariation: 45,
+                minAngleFromWall: 25,
+                perturbationIntervalMin: 500,
+                perturbationIntervalMax: 1000,
+                perturbationAmount: 30,
+                speedMin: 1.73,
+                speedMax: 3.17,
+                unexpectedObjectSpeed: 1.44
+            },
+
+            // ── State tracking ────────────────────────────────────
+            state: {
+                currentTrial: 0,
+                trialSequence: ['practice', 'practice', 'critical', 'divided'],
+                currentPhase: 'instructions',
+                isRunning: false,
+                attendedFaceKey: null,  // 'faceA' or 'faceB'
+                ignoredFaceKey: null,   // the other one
+                ueoMatchType: null      // 'attended' or 'ignored'
+            },
+
+            // Ignored (distractor) face objects
+            distractors: [],
+
+            // Timing
+            timing: {
+                startTime: null,
+                endTime: null
+            },
+
+            // ── Data collection ───────────────────────────────────
+            data: {
+                studyName: 'pilot_face_ueo_v2',
+                subjectCode: null,
+                startTime: '',
+                endTime: '',
+                duration: 0,
+                attendedFace: null,
+                ignoredFace: null,
+                ueoFace: null,
+                ueoMatchType: null,
+                unexpectedObjectDirection: null,
+                trials: {
+                    bounces: [],
+                    counts: [],
+                    accuracy: []
+                },
+                responses: {
+                    noticed: [null, null],
+                    faceChoice: [null, null]
+                },
+                practiceAccuracyAvg: null,
+                runSmoothly: null,
+                glitchesDescription: ''
+            },
+
+            // ============================================================
+            // IMAGE LOADING
+            // ============================================================
+            loadImages() {
+                return new Promise((resolve, reject) => {
+                    const toLoad = [];
+                    const basePath = this.imageConfig.basePath;
+
+                    // Load face A
+                    const imgA = new Image();
+                    imgA.src = basePath + this.imageConfig.faceA;
+                    toLoad.push(new Promise((res, rej) => {
+                        imgA.onload = () => { this.images.faceA = imgA; res(); };
+                        imgA.onerror = () => rej('Failed to load ' + this.imageConfig.faceA);
+                    }));
+
+                    // Load face B
+                    const imgB = new Image();
+                    imgB.src = basePath + this.imageConfig.faceB;
+                    toLoad.push(new Promise((res, rej) => {
+                        imgB.onload = () => { this.images.faceB = imgB; res(); };
+                        imgB.onerror = () => rej('Failed to load ' + this.imageConfig.faceB);
+                    }));
+
+                    // Load foils
+                    this.imageConfig.foils.forEach((foilFile, i) => {
+                        const img = new Image();
+                        img.src = basePath + foilFile;
+                        toLoad.push(new Promise((res, rej) => {
+                            img.onload = () => { this.images.foils[i] = img; res(); };
+                            img.onerror = () => rej('Failed to load ' + foilFile);
+                        }));
+                    });
+
+                    Promise.all(toLoad).then(resolve).catch(reject);
+                });
+            },
+
+            // ============================================================
+            // INITIALIZATION
+            // ============================================================
+            init() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.objects = [];
+                this.unexpectedObject = null;
+                this.lastFrameTime = null;
+
+                // Get subject_code from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                this.data.subjectCode = urlParams.get('subject_code') || 'test_subject';
+                console.log("Subject code:", this.data.subjectCode);
+
+                // ── Randomize face assignments ────────────────────
+                if (Math.random() < 0.5) {
+                    this.state.attendedFaceKey = 'faceA';
+                    this.state.ignoredFaceKey = 'faceB';
+                } else {
+                    this.state.attendedFaceKey = 'faceB';
+                    this.state.ignoredFaceKey = 'faceA';
+                }
+
+                // Record filenames for data logging
+                this.data.attendedFace = this.state.attendedFaceKey === 'faceA'
+                    ? this.imageConfig.faceA : this.imageConfig.faceB;
+                this.data.ignoredFace = this.state.ignoredFaceKey === 'faceA'
+                    ? this.imageConfig.faceA : this.imageConfig.faceB;
+
+                console.log("Attended face:", this.data.attendedFace);
+                console.log("Ignored face:", this.data.ignoredFace);
+
+                // ── Randomize UEO match type ──────────────────────
+                this.state.ueoMatchType = Math.random() < 0.5 ? 'attended' : 'ignored';
+                this.data.ueoMatchType = this.state.ueoMatchType;
+
+                if (this.state.ueoMatchType === 'attended') {
+                    this.data.ueoFace = this.data.attendedFace;
+                } else {
+                    this.data.ueoFace = this.data.ignoredFace;
+                }
+
+                console.log("UEO match type:", this.state.ueoMatchType);
+                console.log("UEO face:", this.data.ueoFace);
+
+                // Generate ignored face (distractor) positions
+                this.generateDistractorPositions();
+
+                // Record start time
+                this.timing.startTime = new Date();
+                this.data.startTime = this.formatDate(this.timing.startTime);
+
+                console.log("Experiment initialized - Face UEO v2");
+                console.log("Using delta-time animation for consistent speed across all devices");
+            },
+
+            // Generate random starting positions for ignored (distractor) faces
+            generateDistractorPositions() {
+                this.distractors = [];
+                const margin = this.config.objectSize;
+                const midY = this.config.canvasHeight / 2;
+                const buffer = this.config.ignoredMidlineBuffer;
+
+                // Distribute across upper and lower halves (3 distractors)
+                const zones = ['upper', 'lower', 'upper'];
+
+                for (let i = 0; i < this.config.numIgnored; i++) {
+                    let x, y;
+                    let attempts = 0;
+                    const maxAttempts = 100;
+
+                    do {
+                        x = Math.random() * (this.config.canvasWidth - margin * 2) + margin;
+                        if (zones[i] === 'upper') {
+                            y = Math.random() * (midY - buffer - margin) + margin;
+                        } else {
+                            y = Math.random() * (this.config.canvasHeight - margin - midY - buffer) + midY + buffer;
+                        }
+                        attempts++;
+                    } while (
+                        this.distractors.some(d => {
+                            const dx = d.startX - x;
+                            const dy = d.startY - y;
+                            return Math.sqrt(dx * dx + dy * dy) < this.config.objectSize * 1.5;
+                        }) && attempts < maxAttempts
+                    );
+
+                    this.distractors.push({
+                        startX: x,
+                        startY: y,
+                        size: this.config.objectSize
+                    });
+                }
+            },
+
+            // ============================================================
+            // HELPER FUNCTIONS
+            // ============================================================
+
+            formatDate(date) {
+                const options = {
+                    timeZone: 'America/Chicago',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                const cstDateString = new Intl.DateTimeFormat('en-US', options).format(date);
+                const [datePart, timePart] = cstDateString.split(', ');
+                const [month, day, year] = datePart.split('/');
+                return `${year}/${month}/${day} ${timePart}`;
+            },
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.add('hidden');
+                });
+                document.getElementById(screenId).classList.remove('hidden');
+            },
+
+            rotateVelocity(vx, vy, angleDegrees) {
+                const angleRadians = angleDegrees * (Math.PI / 180);
+                const cos = Math.cos(angleRadians);
+                const sin = Math.sin(angleRadians);
+                return {
+                    vx: vx * cos - vy * sin,
+                    vy: vx * sin + vy * cos
+                };
+            },
+
+            getRandomAngle(maxDegrees) {
+                return (Math.random() * 2 - 1) * maxDegrees;
+            },
+
+            ensureMinAngleFromWall(vx, vy, wallType) {
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                const minAngleRad = this.config.minAngleFromWall * (Math.PI / 180);
+                const minComponent = speed * Math.sin(minAngleRad);
+
+                if (wallType === 'horizontal') {
+                    if (Math.abs(vy) < minComponent) {
+                        const signY = vy >= 0 ? 1 : -1;
+                        const signX = vx >= 0 ? 1 : -1;
+                        vy = signY * minComponent;
+                        vx = signX * Math.sqrt(speed * speed - vy * vy);
+                    }
+                } else if (wallType === 'vertical') {
+                    if (Math.abs(vx) < minComponent) {
+                        const signX = vx >= 0 ? 1 : -1;
+                        const signY = vy >= 0 ? 1 : -1;
+                        vx = signX * minComponent;
+                        vy = signY * Math.sqrt(speed * speed - vx * vx);
+                    }
+                }
+
+                return { vx, vy };
+            },
+
+            getRandomPerturbationInterval() {
+                return this.config.perturbationIntervalMin +
+                       Math.random() * (this.config.perturbationIntervalMax - this.config.perturbationIntervalMin);
+            },
+
+            getRandomSpeed() {
+                return this.config.speedMin +
+                       Math.random() * (this.config.speedMax - this.config.speedMin);
+            },
+
+            // Get the Image object for a given face key ('faceA' or 'faceB')
+            getFaceImage(faceKey) {
+                return this.images[faceKey];
+            },
+
+            getAttendedImage() {
+                return this.getFaceImage(this.state.attendedFaceKey);
+            },
+
+            getIgnoredImage() {
+                return this.getFaceImage(this.state.ignoredFaceKey);
+            },
+
+            getUEOImage() {
+                if (this.state.ueoMatchType === 'attended') {
+                    return this.getAttendedImage();
+                } else {
+                    return this.getIgnoredImage();
+                }
+            },
+
+            // ============================================================
+            // INSTRUCTIONS
+            // ============================================================
+            showInstructions() {
+                this.showScreen('instructionScreen');
+                const instructions = document.getElementById('instructions');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                // Build face preview HTML for the attended face
+                const attendedSrc = this.imageConfig.basePath + this.data.attendedFace;
+                const facePreviewHTML = `
+                    <div style="margin: 15px 0;">
+                        <div class="face-preview">
+                            <img src="${attendedSrc}" alt="Target face">
+                            <p>Target face</p>
+                        </div>
+                    </div>`;
+
+                let message = "";
+                if (this.state.currentTrial === 0) {
+                    message = `<p>In this task, 6 faces will appear inside a colored rectangle.
+                              After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
+                              <p>There are two different face identities. Your job is to pay attention to the
+                              face shown below and count the total number of times it bounces off
+                              the sides of the rectangle. <strong>Ignore the other face.</strong></p>
+                              ${facePreviewHTML}
+                              <p>You will be asked to report your total count.</p>
+                              <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                } else if (trialType === 'practice') {
+                    message = `<p>On the next screen, you will do the same task. Again, please count the total
+                              number of times this face bounces off the sides of the rectangle.</p>
+                              ${facePreviewHTML}
+                              <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                } else if (trialType === 'critical') {
+                    message = `<p>On the next screen, you will do the same task. Again, please count the total
+                              number of times this face bounces off the sides of the rectangle.</p>
+                              ${facePreviewHTML}
+                              <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                } else if (trialType === 'divided') {
+                    message = `<p>On the next screen, you will do the same task. Again, please count the total
+                              number of times this face bounces off the sides of the rectangle.</p>
+                              ${facePreviewHTML}
+                              <p><strong>NEW REQUIREMENT:</strong> This time, you should <strong>also look</strong>
+                              for the presence of an extra object.</p>
+                              <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                }
+
+                instructions.innerHTML = message;
+            },
+
+            // ============================================================
+            // TRIAL LOGIC
+            // Follows schematic structure: show static frame first,
+            // wait for SPACE/click, then begin animation.
+            // ============================================================
+            startTrial() {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                console.log("Starting trial:", this.state.currentTrial + 1, "Type:", trialType);
+
+                this.showScreen('canvasScreen');
+                this.createObjects();
+                this.lastFrameTime = null;
+
+                // Reset distractors (ignored faces) as moving objects
+                this.distractors.forEach(d => {
+                    d.x = d.startX;
+                    d.y = d.startY;
+                    const speed = this.getRandomSpeed();
+                    const xDir = Math.random() < 0.5 ? 1 : -1;
+                    const yDir = Math.random() < 0.5 ? 1 : -1;
+                    d.vx = speed * xDir;
+                    d.vy = speed * yDir;
+                    d.bounces = 0;
+                    d.isDistractor = true;
+                    const initialInterval = this.getRandomPerturbationInterval();
+                    d.timeSincePerturbation = Math.random() * initialInterval;
+                    d.nextPerturbationAt = initialInterval;
+                });
+
+                // Draw one static frame showing all objects in place
+                this.drawStaticFrame();
+
+                // Show prompt overlay on canvas
+                this.drawReadyPrompt();
+
+                // Wait for participant to press SPACE or click canvas to begin
+                const beginAnimation = (e) => {
+                    // Accept spacebar or click on canvas
+                    if (e.type === 'keydown' && e.code !== 'Space') return;
+                    e.preventDefault();
+
+                    // Remove listeners
+                    document.removeEventListener('keydown', beginAnimation);
+                    this.canvas.removeEventListener('click', beginAnimation);
+
+                    // Redraw static frame without the prompt
+                    this.drawStaticFrame();
+
+                    // Set up unexpected object for critical/divided trials
+                    if (trialType === 'critical' || trialType === 'divided') {
+                        setTimeout(() => {
+                            this.addUnexpectedObject();
+                        }, this.config.unexpectedObjectStart);
+                    }
+
+                    // Start animation
+                    this.state.isRunning = true;
+                    this.lastFrameTime = null;
+                    requestAnimationFrame((time) => this.animate(time));
+
+                    // End trial after duration (timed from motion onset)
+                    setTimeout(() => {
+                        this.endTrial();
+                    }, this.config.trialDuration);
+                };
+
+                document.addEventListener('keydown', beginAnimation);
+                this.canvas.addEventListener('click', beginAnimation);
+            },
+
+            // Draw "Press SPACE" prompt over the static display
+            drawReadyPrompt() {
+                const ctx = this.ctx;
+                const cw = this.config.canvasWidth;
+                const ch = this.config.canvasHeight;
+
+                // Semi-transparent overlay band at bottom
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                ctx.fillRect(0, ch - 50, cw, 50);
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '18px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('When you are ready, press SPACE or click here to start', cw / 2, ch - 25);
+            },
+
+            // Create attended face objects (bouncing)
+            // Ensures no overlap with other attended faces OR distractors.
+            createObjects() {
+                this.objects = [];
+                const margin = this.config.objectSize;
+                const minDist = this.config.objectSize * 1.5;
+
+                for (let i = 0; i < this.config.numAttended; i++) {
+                    let x, y;
+                    let attempts = 0;
+                    const maxAttempts = 200;
+
+                    do {
+                        x = Math.random() * (this.config.canvasWidth - margin * 2) + margin;
+                        y = Math.random() * (this.config.canvasHeight - margin * 2) + margin;
+                        attempts++;
+                    } while (
+                        (this.objects.some(obj => {
+                            const dx = obj.x - x;
+                            const dy = obj.y - y;
+                            return Math.sqrt(dx * dx + dy * dy) < minDist;
+                        }) ||
+                        this.distractors.some(d => {
+                            const dx = d.startX - x;
+                            const dy = d.startY - y;
+                            return Math.sqrt(dx * dx + dy * dy) < minDist;
+                        })) && attempts < maxAttempts
+                    );
+
+                    const speed = this.getRandomSpeed();
+                    const xDir = Math.random() < 0.5 ? 1 : -1;
+                    const yDir = Math.random() < 0.5 ? 1 : -1;
+                    const initialInterval = this.getRandomPerturbationInterval();
+
+                    this.objects.push({
+                        x: x,
+                        y: y,
+                        vx: speed * xDir,
+                        vy: speed * yDir,
+                        size: this.config.objectSize,
+                        bounces: 0,
+                        timeSincePerturbation: Math.random() * initialInterval,
+                        nextPerturbationAt: initialInterval
+                    });
+                }
+            },
+
+            // ============================================================
+            // UNEXPECTED OBJECT — FACE MOVING HORIZONTALLY
+            // ============================================================
+            addUnexpectedObject() {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                // For critical trial, randomly choose direction
+                if (trialType === 'critical') {
+                    this.data.unexpectedObjectDirection = Math.random() < 0.5 ? 'LeftToRight' : 'RightToLeft';
+                }
+                // For divided trial, reuse same direction as critical
+
+                const direction = this.data.unexpectedObjectDirection === 'LeftToRight' ? 1 : -1;
+                const startX = direction === 1 ? -this.config.objectSize : this.config.canvasWidth + this.config.objectSize;
+                const speed = this.config.unexpectedObjectSpeed;
+
+                this.unexpectedObject = {
+                    x: startX,
+                    y: this.config.canvasHeight / 2,
+                    vx: speed * direction,
+                    vy: 0,
+                    size: this.config.objectSize,
+                    isUnexpected: true
+                };
+
+                console.log("Unexpected object: face",
+                            "Match type:", this.state.ueoMatchType,
+                            "Face:", this.data.ueoFace,
+                            "Direction:", this.data.unexpectedObjectDirection);
+            },
+
+            // ============================================================
+            // DRAW STATIC FRAME (for pre-motion pause)
+            // Draws all objects at their starting positions without moving.
+            // ============================================================
+            drawStaticFrame() {
+                this.ctx.fillStyle = this.config.backgroundColor;
+                this.ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
+
+                // Draw ignored (distractor) faces
+                this.distractors.forEach(d => {
+                    this.drawFace(d, this.getIgnoredImage());
+                });
+
+                // Draw attended faces
+                this.objects.forEach(obj => {
+                    this.drawFace(obj, this.getAttendedImage());
+                });
+            },
+
+            // ============================================================
+            // ANIMATION LOOP
+            // ============================================================
+            animate(currentTime) {
+                if (!this.state.isRunning) return;
+
+                // Calculate delta time
+                if (!this.lastFrameTime) {
+                    this.lastFrameTime = currentTime;
+                }
+                const deltaTime = currentTime - this.lastFrameTime;
+                this.lastFrameTime = currentTime;
+
+                const targetFrameTime = 1000 / 60;
+                const timeMultiplier = deltaTime / targetFrameTime;
+
+                // Clear canvas
+                this.ctx.fillStyle = this.config.backgroundColor;
+                this.ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
+
+                // Update and draw ignored (distractor) faces FIRST (background layer)
+                this.distractors.forEach(d => {
+                    this.updateObject(d, timeMultiplier, deltaTime);
+                    this.drawFace(d, this.getIgnoredImage());
+                });
+
+                // Draw unexpected object SECOND (middle layer)
+                if (this.unexpectedObject) {
+                    this.updateUnexpectedObject(timeMultiplier);
+                }
+                if (this.unexpectedObject) {
+                    this.drawFace(this.unexpectedObject, this.getUEOImage());
+                }
+
+                // Update and draw attended faces LAST (top layer)
+                this.objects.forEach(obj => {
+                    this.updateObject(obj, timeMultiplier, deltaTime);
+                    this.drawFace(obj, this.getAttendedImage());
+                });
+
+                // Continue animation
+                requestAnimationFrame((time) => this.animate(time));
+            },
+
+            // Update object position with time-based movement
+            updateObject(obj, timeMultiplier, deltaTime) {
+                obj.x += obj.vx * timeMultiplier;
+                obj.y += obj.vy * timeMultiplier;
+
+                const radius = obj.size / 2;
+                let bouncedX = false;
+                let bouncedY = false;
+
+                // Wall collisions with variable bounce angles
+                if (obj.x - radius <= 0 || obj.x + radius >= this.config.canvasWidth) {
+                    obj.vx *= -1;
+                    if (obj.x - radius <= 0) obj.x = radius;
+                    if (obj.x + radius >= this.config.canvasWidth) obj.x = this.config.canvasWidth - radius;
+
+                    const angleVariation = this.getRandomAngle(this.config.bounceAngleVariation);
+                    const rotated = this.rotateVelocity(obj.vx, obj.vy, angleVariation);
+                    obj.vx = rotated.vx;
+                    obj.vy = rotated.vy;
+
+                    const adjusted = this.ensureMinAngleFromWall(obj.vx, obj.vy, 'vertical');
+                    obj.vx = adjusted.vx;
+                    obj.vy = adjusted.vy;
+
+                    bouncedX = true;
+                    if (!obj.isUnexpected && !obj.isDistractor) obj.bounces++;
+                }
+
+                if (obj.y - radius <= 0 || obj.y + radius >= this.config.canvasHeight) {
+                    obj.vy *= -1;
+                    if (obj.y - radius <= 0) obj.y = radius;
+                    if (obj.y + radius >= this.config.canvasHeight) obj.y = this.config.canvasHeight - radius;
+
+                    if (!bouncedX) {
+                        const angleVariation = this.getRandomAngle(this.config.bounceAngleVariation);
+                        const rotated = this.rotateVelocity(obj.vx, obj.vy, angleVariation);
+                        obj.vx = rotated.vx;
+                        obj.vy = rotated.vy;
+                    }
+
+                    const adjusted = this.ensureMinAngleFromWall(obj.vx, obj.vy, 'horizontal');
+                    obj.vx = adjusted.vx;
+                    obj.vy = adjusted.vy;
+
+                    bouncedY = true;
+                    if (!obj.isUnexpected && !obj.isDistractor) obj.bounces++;
+                }
+
+                // Random perturbation
+                if (!bouncedX && !bouncedY) {
+                    obj.timeSincePerturbation += deltaTime;
+                    if (obj.timeSincePerturbation >= obj.nextPerturbationAt) {
+                        const perturbation = this.getRandomAngle(this.config.perturbationAmount);
+                        const rotated = this.rotateVelocity(obj.vx, obj.vy, perturbation);
+                        const currentSpeed = Math.sqrt(rotated.vx * rotated.vx + rotated.vy * rotated.vy);
+                        const newSpeed = this.getRandomSpeed();
+                        const speedRatio = newSpeed / currentSpeed;
+                        obj.vx = rotated.vx * speedRatio;
+                        obj.vy = rotated.vy * speedRatio;
+                        obj.timeSincePerturbation = 0;
+                        obj.nextPerturbationAt = this.getRandomPerturbationInterval();
+                    }
+                }
+            },
+
+            // Update unexpected object position (horizontal only)
+            updateUnexpectedObject(timeMultiplier) {
+                if (this.unexpectedObject) {
+                    this.unexpectedObject.x += this.unexpectedObject.vx * timeMultiplier;
+
+                    const offScreenMargin = this.config.objectSize;
+                    if (this.unexpectedObject.vx > 0 && this.unexpectedObject.x > this.config.canvasWidth + offScreenMargin) {
+                        this.unexpectedObject = null;
+                    } else if (this.unexpectedObject.vx < 0 && this.unexpectedObject.x < -offScreenMargin) {
+                        this.unexpectedObject = null;
+                    }
+                }
+            },
+
+            // ============================================================
+            // DRAW FACE IMAGE
+            // Draws the face image centered on the object's (x, y) position.
+            // Transparent PNGs will composite naturally over the canvas bg.
+            // ============================================================
+            drawFace(obj, faceImage) {
+                if (!faceImage) return;
+                const halfSize = obj.size / 2;
+                this.ctx.drawImage(
+                    faceImage,
+                    obj.x - halfSize,
+                    obj.y - halfSize,
+                    obj.size,
+                    obj.size
+                );
+            },
+
+            // ============================================================
+            // END TRIAL & RESPONSES
+            // ============================================================
+            endTrial() {
+                this.state.isRunning = false;
+                this.unexpectedObject = null;
+
+                let totalBounces = 0;
+                this.objects.forEach(obj => {
+                    totalBounces += obj.bounces;
+                });
+
+                this.data.trials.bounces.push(totalBounces);
+                console.log("Trial", this.state.currentTrial + 1, "- Actual bounces:", totalBounces);
+
+                this.showResponseInput();
+            },
+
+            showResponseInput() {
+                this.showScreen('responseScreen');
+                document.getElementById('responsePrompt').textContent =
+                    'In the box below, please enter the total number of times the target face bounced off the edges of the rectangle.';
+                document.getElementById('countInput').value = '';
+                document.getElementById('countInput').focus();
+            },
+
+            submitResponse() {
+                const count = parseInt(document.getElementById('countInput').value) || 0;
+                this.data.trials.counts.push(count);
+
+                const trialIndex = this.data.trials.counts.length - 1;
+                const actual = this.data.trials.bounces[trialIndex];
+                const percentError = Math.abs(count - actual) / actual * 100;
+                const accuracy = Math.max(0, Math.min(100, 100 - percentError));
+                this.data.trials.accuracy.push(parseFloat(accuracy.toFixed(2)));
+
+                console.log("Count submitted:", count, "Actual:", actual, "Accuracy:", accuracy.toFixed(2) + "%");
+
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                if (trialType === 'critical' || trialType === 'divided') {
+                    this.showNoticeQuestion();
+                } else {
+                    this.nextTrial();
+                }
+            },
+
+            showNoticeQuestion() {
+                this.showScreen('yesNoScreen');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                if (trialType === 'critical') {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "Did you notice anything extra during the last counting trial that wasn't there in the previous trials?";
+                } else {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "Did you notice an extra object on that trial?";
+                }
+            },
+
+            submitYesNo(answer) {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                const responseIndex = trialType === 'critical' ? 0 : 1;
+                this.data.responses.noticed[responseIndex] = answer;
+
+                console.log("Noticed:", answer, "Trial type:", trialType);
+
+                this.showFaceSelection();
+            },
+
+            // ============================================================
+            // 4AFC FACE IDENTIFICATION
+            // Shows 4 face images: the actual UEO face + 3 foils, shuffled.
+            // ============================================================
+            showFaceSelection() {
+                this.showScreen('faceSelectionScreen');
+                this.selectedFace = null;
+
+                const basePath = this.imageConfig.basePath;
+
+                // Build array of 4 choices: UEO face + 3 foils
+                const choices = [
+                    { id: this.data.ueoFace, src: basePath + this.data.ueoFace, isCorrect: true }
+                ];
+
+                this.imageConfig.foils.forEach(foilFile => {
+                    choices.push({
+                        id: foilFile,
+                        src: basePath + foilFile,
+                        isCorrect: false
+                    });
+                });
+
+                // Shuffle choices (Fisher-Yates)
+                for (let i = choices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [choices[i], choices[j]] = [choices[j], choices[i]];
+                }
+
+                // Build choice buttons
+                const container = document.getElementById('faceChoicesContainer');
+                container.innerHTML = '';
+
+                choices.forEach(choice => {
+                    const div = document.createElement('div');
+                    div.className = 'choice-button face-choice';
+                    div.onclick = () => this.selectFace(choice.id, div);
+
+                    const img = document.createElement('img');
+                    img.src = choice.src;
+                    img.alt = 'Face option';
+
+                    div.appendChild(img);
+                    container.appendChild(div);
+                });
+            },
+
+            selectFace(faceId, element) {
+                document.querySelectorAll('.face-choice').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                this.selectedFace = faceId;
+            },
+
+            submitFaceChoice() {
+                if (!this.selectedFace) {
+                    alert("Please select a face.");
+                    return;
+                }
+
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                const responseIndex = trialType === 'critical' ? 0 : 1;
+                this.data.responses.faceChoice[responseIndex] = this.selectedFace;
+
+                console.log("Face choice:", this.selectedFace, "Trial type:", trialType,
+                            "Correct:", this.selectedFace === this.data.ueoFace);
+
+                this.nextTrial();
+            },
+
+            // Move to next trial
+            nextTrial() {
+                this.state.currentTrial++;
+
+                if (this.state.currentTrial < this.state.trialSequence.length) {
+                    this.showInstructions();
+                } else {
+                    this.showPlaybackQuestion();
+                }
+            },
+
+            // ============================================================
+            // PLAYBACK & FINAL SCREENS
+            // ============================================================
+            showPlaybackQuestion() {
+                const practiceAcc1 = this.data.trials.accuracy[0] || 0;
+                const practiceAcc2 = this.data.trials.accuracy[1] || 0;
+                this.data.practiceAccuracyAvg = parseFloat(((practiceAcc1 + practiceAcc2) / 2).toFixed(2));
+
+                this.showScreen('playbackScreen');
+                document.getElementById('playbackQuestion').textContent =
+                    "Did the animation play smoothly, with no obvious lagging or freezing?";
+            },
+
+            submitPlayback(answer) {
+                this.data.runSmoothly = answer;
+                console.log("Run smoothly:", answer);
+
+                if (answer === 'No') {
+                    this.showGlitchesScreen();
+                } else {
+                    this.showFinalScreen();
+                }
+            },
+
+            showGlitchesScreen() {
+                this.showScreen('glitchesScreen');
+                document.getElementById('glitchesInput').value = '';
+            },
+
+            submitGlitches() {
+                this.data.glitchesDescription = document.getElementById('glitchesInput').value;
+                console.log("Glitches description:", this.data.glitchesDescription);
+                this.showFinalScreen();
+            },
+
+            showFinalScreen() {
+                this.showScreen('finalScreen');
+            },
+
+            // ============================================================
+            // SUBMIT ALL DATA
+            // ============================================================
+            submitData() {
+                // Record end time
+                this.timing.endTime = new Date();
+                this.data.endTime = this.formatDate(this.timing.endTime);
+                this.data.duration = Math.round((this.timing.endTime - this.timing.startTime) / 1000);
+
+                // Fill in form fields
+                const form = document.getElementById('task_data');
+                form.study_name.value = this.data.studyName;
+                form.subject_code.value = this.data.subjectCode;
+                form.start_time.value = this.data.startTime;
+                form.end_time.value = this.data.endTime;
+                form.duration.value = this.data.duration;
+                form.background_color.value = this.config.backgroundColor;
+                form.attended_face.value = this.data.attendedFace;
+                form.ignored_face.value = this.data.ignoredFace;
+                form.ueo_face.value = this.data.ueoFace;
+                form.ueo_match_type.value = this.data.ueoMatchType;
+                form.bounce_angle_variation.value = this.config.bounceAngleVariation;
+                form.min_angle_from_wall.value = this.config.minAngleFromWall;
+                form.perturbation_interval_min.value = this.config.perturbationIntervalMin;
+                form.perturbation_interval_max.value = this.config.perturbationIntervalMax;
+                form.perturbation_amount.value = this.config.perturbationAmount;
+                form.speed_min.value = this.config.speedMin;
+                form.speed_max.value = this.config.speedMax;
+                form.unexpected_object_speed.value = this.config.unexpectedObjectSpeed;
+                form.unexpected_object_direction.value = this.data.unexpectedObjectDirection || '';
+
+                // Distractor info
+                form.num_attended.value = this.config.numAttended;
+                form.num_ignored.value = this.config.numIgnored;
+                form.distractor_positions.value = JSON.stringify(
+                    this.distractors.map(d => ({ x: Math.round(d.startX), y: Math.round(d.startY) }))
+                );
+                form.distractor_motion.value = 'moving';
+
+                // Trial 1 (Practice 1)
+                form.trial1_bounces.value = this.data.trials.bounces[0] || '';
+                form.trial1_count.value = this.data.trials.counts[0] || '';
+                form.trial1_accuracy.value = this.data.trials.accuracy[0] || '';
+
+                // Trial 2 (Practice 2)
+                form.trial2_bounces.value = this.data.trials.bounces[1] || '';
+                form.trial2_count.value = this.data.trials.counts[1] || '';
+                form.trial2_accuracy.value = this.data.trials.accuracy[1] || '';
+
+                // Trial 3 (Critical)
+                form.trial3_bounces.value = this.data.trials.bounces[2] || '';
+                form.trial3_count.value = this.data.trials.counts[2] || '';
+                form.trial3_accuracy.value = this.data.trials.accuracy[2] || '';
+                form.trial3_noticed.value = this.data.responses.noticed[0] || '';
+                form.trial3_face_choice.value = this.data.responses.faceChoice[0] || '';
+
+                // Trial 4 (Divided)
+                form.trial4_bounces.value = this.data.trials.bounces[3] || '';
+                form.trial4_count.value = this.data.trials.counts[3] || '';
+                form.trial4_accuracy.value = this.data.trials.accuracy[3] || '';
+                form.trial4_noticed.value = this.data.responses.noticed[1] || '';
+                form.trial4_face_choice.value = this.data.responses.faceChoice[1] || '';
+
+                // Accuracy summary
+                form.practice_accuracy_avg.value = this.data.practiceAccuracyAvg || '';
+
+                // Playback
+                form.run_smoothly.value = this.data.runSmoothly || '';
+                form.glitches_description.value = this.data.glitchesDescription || '';
+
+                // Log all data
+                console.log("=== FINAL DATA ===");
+                console.log("Study name:", this.data.studyName);
+                console.log("Subject:", this.data.subjectCode);
+                console.log("Duration:", this.data.duration, "seconds");
+                console.log("Attended face:", this.data.attendedFace);
+                console.log("Ignored face:", this.data.ignoredFace);
+                console.log("UEO face:", this.data.ueoFace);
+                console.log("UEO match type:", this.data.ueoMatchType);
+                console.log("UEO direction:", this.data.unexpectedObjectDirection);
+                console.log("Bounces:", this.data.trials.bounces);
+                console.log("Counts:", this.data.trials.counts);
+                console.log("Accuracy:", this.data.trials.accuracy);
+                console.log("Practice Avg:", this.data.practiceAccuracyAvg);
+                console.log("Noticed:", this.data.responses.noticed);
+                console.log("Face Choice:", this.data.responses.faceChoice);
+                console.log("==================");
+
+                // Create data object for submission
+                const formData = new FormData(form);
+                const dataObject = {};
+                formData.forEach((value, key) => {
+                    dataObject[key] = value;
+                });
+
+                const json = JSON.stringify(dataObject);
+                console.log("JSON being sent:", json);
+
+                // Send data via XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "data.php", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log("Server response:", xhr.responseText);
+                        if (xhr.status === 200) {
+                            window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1QBLCRQ';
+                            console.log("Data submitted successfully.");
+                        } else {
+                            console.error("Error submitting data");
+                        }
+                    }
+                };
+                xhr.send(json);
+            }
+        };
+
+        // ============================================================
+        // INITIALIZATION
+        // Load images first, then initialize experiment.
+        // ============================================================
+        window.onload = function() {
+            console.log("Page loaded - Face UEO v2 Experiment");
+            console.log("Loading images...");
+
+            experiment.loadImages().then(() => {
+                console.log("All images loaded successfully.");
+                experiment.init();
+                experiment.showInstructions();
+            }).catch((err) => {
+                console.error("Image loading error:", err);
+                document.getElementById('loadingScreen').innerHTML =
+                    `<p style="color: red; font-size: 18px;">Error loading images: ${err}</p>
+                     <p>Please ensure all face images are in the <strong>Assets/</strong> folder:</p>
+                     <ul style="text-align: left; display: inline-block;">
+                        <li>${experiment.imageConfig.faceA}</li>
+                        <li>${experiment.imageConfig.faceB}</li>
+                        <li>${experiment.imageConfig.foils.join('</li><li>')}</li>
+                     </ul>`;
+            });
+        };
+    </script>
+</body>
+</html>

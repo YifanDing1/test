@@ -114,8 +114,8 @@
 
         .choice-button img {
             display: block;
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
         }
 
@@ -266,11 +266,11 @@
             </div>
         </div>
 
-        <!-- Face Selection Screen (6AFC with images) -->
+        <!-- Face Selection Screen (3AFC with images) -->
         <div id="faceSelectionScreen" class="screen hidden">
             <div id="faceSelectionSection" class="response-section">
                 <h2>There actually was an extra face that moved across the screen. If you saw it, please select the face you saw. If you didn't see it, please guess.</h2>
-                <div id="faceChoicesContainer" style="display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <div id="faceChoicesContainer" style="display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap;">
                     <!-- Face choice buttons will be populated dynamically -->
                 </div>
                 <button onclick="experiment.submitFaceChoice()">Submit Choice</button>
@@ -316,30 +316,27 @@
         //
         // UEO is a face (matching attended or ignored) that moves
         // horizontally across the screen midline.
-        // After noticing question, 6AFC face identification:
-        //   2 people × 3 expressions (happy, sad, neutral).
-        //   The UEO face is always one of the 6 options.
+        // After noticing question, 3AFC face identification:
+        //   same person × 3 expressions (happy, sad, neutral).
+        //   The UEO face is always one of the 3 options.
         // ============================================================
         const experiment = {
             // ── Image assets ──────────────────────────────────────
-            // Two people, three expressions each.
             // faceA / faceB are the two stimulus identities used
-            // for bouncing (attended vs ignored). They must each
-            // correspond to one of the 6AFC entries below.
+            // for bouncing (attended vs ignored) — same person,
+            // different expressions.
+            // afcFaces lists the 3 expression variants of that
+            // person for the forced-choice identification screen.
             imageConfig: {
                 basePath: 'Assets/',
-                // Bouncing stimulus faces (filenames must match an afcFaces entry)
+                // Bouncing stimulus faces
                 faceA: 'person1_happy.png',
                 faceB: 'person1_sad.png',
-                // All 6 faces for 6AFC: person1 × {happy, sad, neutral},
-                //                       person2 × {happy, sad, neutral}
+                // 3AFC: same person × {happy, sad, neutral}
                 afcFaces: [
                     'person1_happy.png',
                     'person1_sad.png',
-                    'person1_neutral.png',
-                    'person2_happy.png',
-                    'person2_sad.png',
-                    'person2_neutral.png'
+                    'person1_neutral.png'
                 ]
             },
 
@@ -1073,10 +1070,10 @@
             },
 
             // ============================================================
-            // 6AFC FACE IDENTIFICATION
-            // Shows 6 face images: 2 people × 3 expressions (happy,
-            // sad, neutral), shuffled. The UEO face is always one of
-            // the 6 options.
+            // 3AFC FACE IDENTIFICATION
+            // Shows 3 face images: same person in happy, sad, neutral
+            // expressions, shuffled. The UEO face is always one of
+            // the 3 options.
             // ============================================================
             showFaceSelection() {
                 this.showScreen('faceSelectionScreen');

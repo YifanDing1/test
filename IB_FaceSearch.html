@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inattentional Blindness - Face Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        #experimentContainer {
+            max-width: 800px;
+            min-height: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #canvasContainer {
+            text-align: center;
+        }
+
+        #canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #333;
+            background-color: #797979;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        input[type="text"] {
+            font-size: 16px;
+            padding: 5px;
+            width: 300px;
+            margin: 5px;
+        }
+
+        .hidden { display: none !important; }
+
+        #instructions {
+            text-align: center;
+            margin: 20px;
+            font-size: 18px;
+            line-height: 1.5;
+            padding: 40px;
+        }
+
+        .response-section {
+            background: #f9f9f9;
+            padding: 40px;
+            border-radius: 5px;
+            margin: 10px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .choice-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #797979;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .choice-button:hover {
+            border-color: #4CAF50;
+            background-color: #8a8a8a;
+        }
+
+        .choice-button.selected {
+            border-color: #4CAF50;
+        }
+
+        .choice-button img {
+            display: block;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .screen {
+            min-height: 660px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .key-hint {
+            display: inline-block;
+            padding: 4px 12px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            background: #eee;
+            margin: 0 4px;
+        }
+
+        #loadingScreen {
+            text-align: center;
+            font-size: 20px;
+        }
+
+        #loadingScreen .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .feedback-correct { color: #00cc00; font-size: 32px; font-weight: bold; }
+        .feedback-incorrect { color: #cc0000; font-size: 32px; font-weight: bold; }
+
+        #responseCanvas {
+            display: block;
+            margin: 15px auto;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="experimentContainer">
+        <!-- Hidden form for data submission -->
+        <form id="task_data" name="task_data" action="data.php" method="post">
+            <input type="hidden" name="study_name" value="">
+            <input type="hidden" name="subject_code" value="">
+            <input type="hidden" name="start_time" value="">
+            <input type="hidden" name="end_time" value="">
+            <input type="hidden" name="duration" value="">
+            <input type="hidden" name="num_faces" value="">
+            <input type="hidden" name="ring_radius" value="">
+            <input type="hidden" name="face_size" value="">
+            <input type="hidden" name="dot_radius" value="">
+            <input type="hidden" name="dot_offset" value="">
+            <input type="hidden" name="dot_color" value="">
+            <input type="hidden" name="stimulus_duration" value="">
+            <input type="hidden" name="fixation_duration" value="">
+            <input type="hidden" name="background_color" value="">
+            <input type="hidden" name="target_expression" value="">
+            <input type="hidden" name="distractor_expression" value="">
+            <input type="hidden" name="ueo_expression" value="">
+            <input type="hidden" name="ueo_match_type" value="">
+            <!-- Practice -->
+            <input type="hidden" name="practice_target_positions" value="">
+            <input type="hidden" name="practice_target_dot_sides" value="">
+            <input type="hidden" name="practice_responses" value="">
+            <input type="hidden" name="practice_correct" value="">
+            <input type="hidden" name="practice_rts" value="">
+            <input type="hidden" name="practice_accuracy" value="">
+            <!-- Pre-critical -->
+            <input type="hidden" name="precritical_target_positions" value="">
+            <input type="hidden" name="precritical_target_dot_sides" value="">
+            <input type="hidden" name="precritical_responses" value="">
+            <input type="hidden" name="precritical_correct" value="">
+            <input type="hidden" name="precritical_rts" value="">
+            <input type="hidden" name="precritical_accuracy" value="">
+            <!-- Critical -->
+            <input type="hidden" name="critical_target_position" value="">
+            <input type="hidden" name="critical_target_dot_side" value="">
+            <input type="hidden" name="critical_response" value="">
+            <input type="hidden" name="critical_correct" value="">
+            <input type="hidden" name="critical_rt" value="">
+            <input type="hidden" name="critical_noticed" value="">
+            <input type="hidden" name="critical_face_choice" value="">
+            <!-- Divided -->
+            <input type="hidden" name="divided_target_position" value="">
+            <input type="hidden" name="divided_target_dot_side" value="">
+            <input type="hidden" name="divided_response" value="">
+            <input type="hidden" name="divided_correct" value="">
+            <input type="hidden" name="divided_rt" value="">
+            <input type="hidden" name="divided_noticed" value="">
+            <input type="hidden" name="divided_face_choice" value="">
+            <!-- Vision -->
+            <input type="hidden" name="vision_correction_need" value="">
+            <input type="hidden" name="vision_correction_use" value="">
+        </form>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="screen">
+            <div class="spinner"></div>
+            <p>Loading experiment images...</p>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructionScreen" class="screen hidden">
+            <div id="instructions"><p>Loading...</p></div>
+        </div>
+
+        <!-- Canvas Screen -->
+        <div id="canvasScreen" class="screen hidden">
+            <div id="canvasContainer">
+                <canvas id="canvas" width="600" height="600"></canvas>
+            </div>
+        </div>
+
+        <!-- Response Screen -->
+        <div id="responseScreen" class="screen hidden">
+            <div id="responseSection" class="response-section">
+                <h2>Which side of the target face was the dot on?</h2>
+                <canvas id="responseCanvas" width="250" height="160"></canvas>
+                <p style="margin-top: 15px;">
+                    <span class="key-hint">←</span> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="key-hint">→</span>
+                </p>
+                <p style="color: #777; font-size: 14px;">Press the left or right arrow key</p>
+            </div>
+        </div>
+
+        <!-- Feedback Screen (practice only) -->
+        <div id="feedbackScreen" class="screen hidden">
+            <div id="feedbackSection" class="response-section">
+                <h2 id="feedbackText"></h2>
+                <br>
+                <button onclick="experiment.afterFeedback()">Continue</button>
+            </div>
+        </div>
+
+        <!-- Yes/No Question Screen -->
+        <div id="yesNoScreen" class="screen hidden">
+            <div id="yesNoSection" class="response-section">
+                <h2 id="yesNoQuestion"></h2>
+                <button onclick="experiment.submitNotice('Yes')">Yes</button>
+                <button onclick="experiment.submitNotice('No')">No</button>
+            </div>
+        </div>
+
+        <!-- Face Selection Screen (3AFC) -->
+        <div id="faceSelectionScreen" class="screen hidden">
+            <div id="faceSelectionSection" class="response-section">
+                <h2>There was actually an extra face at the center of the ring. If you saw it, please select the face you saw. If you didn't see it, please guess.</h2>
+                <div id="faceChoicesContainer" style="display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap;"></div>
+                <button onclick="experiment.submitFaceChoice()">Submit Choice</button>
+            </div>
+        </div>
+
+        <!-- Vision Questions Screen -->
+        <div id="visionScreen" class="screen hidden">
+            <div id="visionSection" class="response-section">
+                <h2>Vision Questions</h2>
+                <p style="margin: 20px 0;">Do you need vision correction (glasses, contacts)?</p>
+                <div id="visionNeedBtns">
+                    <button onclick="experiment.setVisionNeed('Yes')">Yes</button>
+                    <button onclick="experiment.setVisionNeed('No')">No</button>
+                </div>
+                <p style="margin: 20px 0;" id="visionUsePrompt" class="hidden">Are you currently using vision correction?</p>
+                <div id="visionUseBtns" class="hidden">
+                    <button onclick="experiment.setVisionUse('Yes')">Yes</button>
+                    <button onclick="experiment.setVisionUse('No')">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="finalScreen" class="screen hidden">
+            <div id="finalSection" class="response-section">
+                <h2>Thank you for completing the task!</h2>
+                <p>Click 'Continue' to go back to Prolific.</p>
+                <button id="finalSubmit" onclick="experiment.submitData()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FACE SEARCH IB EXPERIMENT
+        //
+        // Static search paradigm: a ring of faces shown briefly.
+        // One face is the target (happy among sad). Each face has a
+        // small dot just OUTSIDE it on the left or right side.
+        // Participant finds the target and presses ← or → arrow key
+        // to report the dot's side.
+        //
+        // On critical/divided trials, an unexpected face (UEO) appears
+        // at the center of the ring.
+        //
+        // Trial structure:
+        //   practice × N → preCritical × N → critical → IB Qs →
+        //   divided instruction → divided → IB Qs → vision → end
+        // ============================================================
+        const experiment = {
+            // ── Image assets ──────────────────────────────────────
+            imageConfig: {
+                basePath: 'Assets/',
+                targetFace: 'person1_happy.png',
+                distractorFace: 'person1_sad.png',
+                ueoFace: 'person1_neutral.png',
+                afcFaces: [
+                    'person1_happy.png',
+                    'person1_sad.png',
+                    'person1_neutral.png'
+                ]
+            },
+
+            images: {},
+
+            // ── Configuration ─────────────────────────────────────
+            config: {
+                numFaces: 6,
+                ringRadius: 180,
+                faceSize: 80,
+                dotRadius: 4,
+                dotGap: 3,               // px between face edge and nearest dot edge
+                dotColor: '#000000',
+                dotGrayColor: '#aaaaaa', // placeholder dot on response screen
+                stimulusDuration: 1000,
+                fixationDuration: 1000,
+                canvasWidth: 600,
+                canvasHeight: 600,
+                backgroundColor: '#797979',
+                nPractice: 2,
+                nPreCritical: 3
+            },
+
+            // Computed in init(): dot center = faceSize/2 + dotGap + dotRadius
+            dotOffset: 0,
+
+            // ── State ─────────────────────────────────────────────
+            state: {
+                currentTrial: 0,
+                trialSequence: [],
+                stimulusOnsetTime: null,
+                responded: false,
+                keyListener: null
+            },
+
+            // ── Per-trial stimulus (regenerated each trial) ───────
+            currentStimulus: {
+                targetPosition: -1,
+                dotSides: [],
+                targetDotSide: null
+            },
+
+            // ── Data collection ───────────────────────────────────
+            data: {
+                studyName: 'FaceSearch_IB_Pilot1',
+                subjectCode: null,
+                startTime: '',
+                endTime: '',
+                duration: 0,
+                targetExpression: null,
+                distractorExpression: null,
+                ueoExpression: null,
+                ueoMatchType: null,    // 'target' or 'distractor'
+
+                practice: {
+                    targetPositions: [], targetDotSides: [],
+                    responses: [], correct: [], rts: []
+                },
+                preCritical: {
+                    targetPositions: [], targetDotSides: [],
+                    responses: [], correct: [], rts: []
+                },
+                critical: {
+                    targetPosition: null, targetDotSide: null,
+                    response: null, correct: null, rt: null,
+                    noticed: null, faceChoice: null
+                },
+                divided: {
+                    targetPosition: null, targetDotSide: null,
+                    response: null, correct: null, rt: null,
+                    noticed: null, faceChoice: null
+                },
+
+                practiceAccuracy: null,
+                preCriticalAccuracy: null,
+                visionCorrectionNeed: null,
+                visionCorrectionUse: null
+            },
+
+            timing: { startTime: null, endTime: null },
+
+            // ============================================================
+            // IMAGE LOADING
+            // ============================================================
+            loadImages() {
+                return new Promise((resolve, reject) => {
+                    const toLoad = [];
+                    const basePath = this.imageConfig.basePath;
+
+                    const allFiles = new Set([
+                        this.imageConfig.targetFace,
+                        this.imageConfig.distractorFace,
+                        this.imageConfig.ueoFace,
+                        ...this.imageConfig.afcFaces
+                    ]);
+
+                    allFiles.forEach(filename => {
+                        const img = new Image();
+                        img.src = basePath + filename;
+                        toLoad.push(new Promise((res, rej) => {
+                            img.onload = () => { this.images[filename] = img; res(); };
+                            img.onerror = () => rej('Failed to load ' + filename);
+                        }));
+                    });
+
+                    Promise.all(toLoad).then(resolve).catch(reject);
+                });
+            },
+
+            // ============================================================
+            // INITIALIZATION
+            // ============================================================
+            init() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                // Compute dotOffset: face edge + gap + dot center
+                this.dotOffset = this.config.faceSize / 2 + this.config.dotGap + this.config.dotRadius;
+
+                const urlParams = new URLSearchParams(window.location.search);
+                this.data.subjectCode = urlParams.get('subject_code') || 'test_subject';
+
+                this.data.targetExpression = this.getExpression(this.imageConfig.targetFace);
+                this.data.distractorExpression = this.getExpression(this.imageConfig.distractorFace);
+
+                // Randomize UEO: matches either the target or distractor face
+                this.data.ueoMatchType = Math.random() < 0.5 ? 'target' : 'distractor';
+                if (this.data.ueoMatchType === 'target') {
+                    this.state.ueoFile = this.imageConfig.targetFace;
+                } else {
+                    this.state.ueoFile = this.imageConfig.distractorFace;
+                }
+                this.data.ueoExpression = this.getExpression(this.state.ueoFile);
+
+                console.log("UEO match type:", this.data.ueoMatchType,
+                            "UEO expression:", this.data.ueoExpression);
+
+                this.state.trialSequence = [];
+                for (let i = 0; i < this.config.nPractice; i++) this.state.trialSequence.push('practice');
+                for (let i = 0; i < this.config.nPreCritical; i++) this.state.trialSequence.push('preCritical');
+                this.state.trialSequence.push('critical');
+                this.state.trialSequence.push('divided');
+
+                this.timing.startTime = new Date();
+                this.data.startTime = this.formatDate(this.timing.startTime);
+
+                console.log("Experiment initialized - Face Search IB");
+                console.log("dotOffset (computed):", this.dotOffset,
+                            "= faceSize/2(" + this.config.faceSize/2 + ") + gap(" + this.config.dotGap + ") + dotR(" + this.config.dotRadius + ")");
+                console.log("Trial sequence:", this.state.trialSequence);
+            },
+
+            // ============================================================
+            // HELPERS
+            // ============================================================
+            formatDate(date) {
+                const options = {
+                    timeZone: 'America/Chicago',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false
+                };
+                const cstDateString = new Intl.DateTimeFormat('en-US', options).format(date);
+                const [datePart, timePart] = cstDateString.split(', ');
+                const [month, day, year] = datePart.split('/');
+                return `${year}/${month}/${day} ${timePart}`;
+            },
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+                document.getElementById(screenId).classList.remove('hidden');
+            },
+
+            getExpression(filename) {
+                return filename.replace(/\.png$/i, '').split('_').pop();
+            },
+
+            // ============================================================
+            // INSTRUCTION PREVIEW: target face with example dot
+            // Draws on an inline canvas so the dot matches trial rendering.
+            // ============================================================
+            buildFacePreviewHTML() {
+                return `
+                    <div style="margin: 20px 0;">
+                        <canvas id="previewCanvas" width="180" height="130"
+                                style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
+                        <p style="font-size: 14px; color: #555; margin-top: 6px;">
+                            Target face (with example dot)
+                        </p>
+                    </div>`;
+            },
+
+            drawPreviewCanvas() {
+                const pc = document.getElementById('previewCanvas');
+                if (!pc) return;
+                const pCtx = pc.getContext('2d');
+                const pw = pc.width;
+                const ph = pc.height;
+                const cx = pw / 2;
+                const cy = ph / 2;
+
+                pCtx.fillStyle = this.config.backgroundColor;
+                pCtx.fillRect(0, 0, pw, ph);
+
+                // Draw target face at display size
+                const displaySize = 100;
+                const half = displaySize / 2;
+                const faceImg = this.images[this.imageConfig.targetFace];
+                if (faceImg) {
+                    pCtx.drawImage(faceImg, cx - half, cy - half, displaySize, displaySize);
+                }
+
+                // Example dot on the left, just outside the face
+                const previewDotOffset = half + this.config.dotGap + this.config.dotRadius;
+                pCtx.beginPath();
+                pCtx.arc(cx - previewDotOffset, cy, this.config.dotRadius, 0, 2 * Math.PI);
+                pCtx.fillStyle = this.config.dotColor;
+                pCtx.fill();
+            },
+
+            // ============================================================
+            // INSTRUCTIONS
+            // ============================================================
+            showInstructions() {
+                this.showScreen('instructionScreen');
+                const inst = document.getElementById('instructions');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                const facePreview = this.buildFacePreviewHTML();
+
+                let message = "";
+
+                if (this.state.currentTrial === 0) {
+                    message = `
+                        <p>In this task, you will briefly see a ring of faces on screen.</p>
+                        <p>Each face will have a small dot just outside it, on either the left or right side.</p>
+                        <p>Your task is to <strong>find the target face</strong> and report which side its dot is on:</p>
+                        ${facePreview}
+                        <p>
+                            Press <span class="key-hint">←</span> if the dot is on the Left &nbsp;&nbsp;
+                            Press <span class="key-hint">→</span> if the dot is on the Right
+                        </p>
+                        <p>You will first do some practice trials with feedback.</p>
+                        <br><button onclick="experiment.startTrial()">Click to begin practice</button>`;
+                } else if (trialType === 'practice') {
+                    message = `
+                        <p>Another practice trial. Find the target face and report the dot's side.</p>
+                        ${facePreview}
+                        <p><span class="key-hint">←</span> &nbsp;&nbsp;
+                           <span class="key-hint">→</span></p>
+                        <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                } else if (trialType === 'preCritical') {
+                    if (this.state.trialSequence[this.state.currentTrial - 1] === 'practice') {
+                        message = `
+                            <p>We will now begin the real trials. You will no longer receive feedback.</p>
+                            <p>Same task: find the target face and report the dot's side.</p>
+                            ${facePreview}
+                            <p><span class="key-hint">←</span> &nbsp;&nbsp;
+                               <span class="key-hint">→</span></p>
+                            <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                    } else {
+                        // Auto-advance for subsequent preCritical trials
+                        this.startTrial();
+                        return;
+                    }
+                } else if (trialType === 'critical') {
+                    // Looks identical to preCritical from participant's view
+                    this.startTrial();
+                    return;
+                } else if (trialType === 'divided') {
+                    message = `
+                        <p>Same task: find the target face and report the dot's side.</p>
+                        ${facePreview}
+                        <p><span class="key-hint">←</span> &nbsp;&nbsp;
+                           <span class="key-hint">→</span></p>
+                        <p><strong>NEW:</strong> This time, also pay attention to whether
+                        <strong>anything extra</strong> appears anywhere on screen.</p>
+                        <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                }
+
+                inst.innerHTML = message;
+
+                // Draw the preview canvas after DOM update
+                requestAnimationFrame(() => this.drawPreviewCanvas());
+            },
+
+            // ============================================================
+            // STIMULUS GENERATION
+            // ============================================================
+            generateTrialStimulus() {
+                const targetPos = Math.floor(Math.random() * this.config.numFaces);
+
+                const dotSides = [];
+                for (let i = 0; i < this.config.numFaces; i++) {
+                    dotSides.push(Math.random() < 0.5 ? 'left' : 'right');
+                }
+
+                this.currentStimulus = {
+                    targetPosition: targetPos,
+                    dotSides: dotSides,
+                    targetDotSide: dotSides[targetPos]
+                };
+            },
+
+            // ============================================================
+            // TRIAL EXECUTION
+            // ============================================================
+            startTrial() {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                console.log("Starting trial:", this.state.currentTrial + 1, "Type:", trialType);
+
+                this.state.responded = false;
+                this.generateTrialStimulus();
+
+                this.showScreen('canvasScreen');
+                this.drawFixation();
+
+                setTimeout(() => {
+                    this.drawStimulus(trialType);
+                    this.state.stimulusOnsetTime = performance.now();
+
+                    this.enableResponseListener();
+
+                    // After stimulus duration, clear and show response screen
+                    setTimeout(() => {
+                        if (!this.state.responded) {
+                            this.drawBlank();
+                            setTimeout(() => {
+                                if (!this.state.responded) {
+                                    this.showResponseScreen();
+                                }
+                            }, 100);
+                        }
+                    }, this.config.stimulusDuration);
+
+                }, this.config.fixationDuration);
+            },
+
+            // ============================================================
+            // CANVAS DRAWING
+            // ============================================================
+            drawFixation() {
+                const ctx = this.ctx;
+                const cw = this.config.canvasWidth;
+                const ch = this.config.canvasHeight;
+
+                ctx.fillStyle = this.config.backgroundColor;
+                ctx.fillRect(0, 0, cw, ch);
+
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                const cx = cw / 2;
+                const cy = ch / 2;
+                const arm = 15;
+                ctx.beginPath();
+                ctx.moveTo(cx - arm, cy);
+                ctx.lineTo(cx + arm, cy);
+                ctx.moveTo(cx, cy - arm);
+                ctx.lineTo(cx, cy + arm);
+                ctx.stroke();
+            },
+
+            drawBlank() {
+                this.ctx.fillStyle = this.config.backgroundColor;
+                this.ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
+            },
+
+            drawStimulus(trialType) {
+                const ctx = this.ctx;
+                const cw = this.config.canvasWidth;
+                const ch = this.config.canvasHeight;
+                const cx = cw / 2;
+                const cy = ch / 2;
+
+                ctx.fillStyle = this.config.backgroundColor;
+                ctx.fillRect(0, 0, cw, ch);
+
+                // Draw face ring
+                for (let i = 0; i < this.config.numFaces; i++) {
+                    const angle = (2 * Math.PI / this.config.numFaces) * i - Math.PI / 2;
+                    const fx = cx + this.config.ringRadius * Math.cos(angle);
+                    const fy = cy + this.config.ringRadius * Math.sin(angle);
+
+                    const isTarget = (i === this.currentStimulus.targetPosition);
+                    const faceFile = isTarget ? this.imageConfig.targetFace : this.imageConfig.distractorFace;
+                    const faceImg = this.images[faceFile];
+
+                    if (faceImg) {
+                        const half = this.config.faceSize / 2;
+                        ctx.drawImage(faceImg, fx - half, fy - half, this.config.faceSize, this.config.faceSize);
+                    }
+
+                    // Dot just outside the face
+                    const dotSide = this.currentStimulus.dotSides[i];
+                    const dotX = dotSide === 'left'
+                        ? fx - this.dotOffset
+                        : fx + this.dotOffset;
+
+                    ctx.beginPath();
+                    ctx.arc(dotX, fy, this.config.dotRadius, 0, 2 * Math.PI);
+                    ctx.fillStyle = this.config.dotColor;
+                    ctx.fill();
+                }
+
+                // UEO at center on critical/divided
+                if (trialType === 'critical' || trialType === 'divided') {
+                    const ueoImg = this.images[this.state.ueoFile];
+                    if (ueoImg) {
+                        const half = this.config.faceSize / 2;
+                        ctx.drawImage(ueoImg, cx - half, cy - half, this.config.faceSize, this.config.faceSize);
+                    }
+                }
+            },
+
+            // ============================================================
+            // RESPONSE SCREEN
+            // Shows target face with two grayed-out dots.
+            // Arrow key press highlights the chosen dot in black.
+            // ============================================================
+            showResponseScreen() {
+                this.showScreen('responseScreen');
+                this.drawResponseCanvas(null);
+            },
+
+            drawResponseCanvas(highlightSide) {
+                const rc = document.getElementById('responseCanvas');
+                const rCtx = rc.getContext('2d');
+                const rw = rc.width;
+                const rh = rc.height;
+                const cx = rw / 2;
+                const cy = rh / 2;
+
+                rCtx.fillStyle = this.config.backgroundColor;
+                rCtx.fillRect(0, 0, rw, rh);
+
+                // Target face (slightly larger for the response display)
+                const displaySize = 100;
+                const half = displaySize / 2;
+                const faceImg = this.images[this.imageConfig.targetFace];
+                if (faceImg) {
+                    rCtx.drawImage(faceImg, cx - half, cy - half, displaySize, displaySize);
+                }
+
+                // Dot offset scaled to the display size
+                const respDotOffset = half + this.config.dotGap + this.config.dotRadius;
+
+                // Left dot
+                rCtx.beginPath();
+                rCtx.arc(cx - respDotOffset, cy, this.config.dotRadius, 0, 2 * Math.PI);
+                rCtx.fillStyle = (highlightSide === 'left') ? this.config.dotColor : this.config.dotGrayColor;
+                rCtx.fill();
+
+                // Right dot
+                rCtx.beginPath();
+                rCtx.arc(cx + respDotOffset, cy, this.config.dotRadius, 0, 2 * Math.PI);
+                rCtx.fillStyle = (highlightSide === 'right') ? this.config.dotColor : this.config.dotGrayColor;
+                rCtx.fill();
+            },
+
+            // ============================================================
+            // RESPONSE HANDLING — left/right arrow keys
+            // ============================================================
+            enableResponseListener() {
+                this.disableResponseListener();
+
+                this.state.keyListener = (e) => {
+                    if (this.state.responded) return;
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.processResponse('left');
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        this.processResponse('right');
+                    }
+                };
+
+                document.addEventListener('keydown', this.state.keyListener);
+            },
+
+            disableResponseListener() {
+                if (this.state.keyListener) {
+                    document.removeEventListener('keydown', this.state.keyListener);
+                    this.state.keyListener = null;
+                }
+            },
+
+            processResponse(response) {
+                this.state.responded = true;
+                this.disableResponseListener();
+
+                const rt = Math.round(performance.now() - this.state.stimulusOnsetTime);
+                const correct = (response === this.currentStimulus.targetDotSide);
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                console.log("Response:", response,
+                            "Correct answer:", this.currentStimulus.targetDotSide,
+                            "Match:", correct, "RT:", rt + "ms",
+                            "Trial:", trialType);
+
+                // Highlight the chosen dot on the response canvas
+                this.drawResponseCanvas(response);
+
+                // Store data by trial type
+                if (trialType === 'practice') {
+                    this.data.practice.targetPositions.push(this.currentStimulus.targetPosition);
+                    this.data.practice.targetDotSides.push(this.currentStimulus.targetDotSide);
+                    this.data.practice.responses.push(response);
+                    this.data.practice.correct.push(correct);
+                    this.data.practice.rts.push(rt);
+                } else if (trialType === 'preCritical') {
+                    this.data.preCritical.targetPositions.push(this.currentStimulus.targetPosition);
+                    this.data.preCritical.targetDotSides.push(this.currentStimulus.targetDotSide);
+                    this.data.preCritical.responses.push(response);
+                    this.data.preCritical.correct.push(correct);
+                    this.data.preCritical.rts.push(rt);
+                } else if (trialType === 'critical') {
+                    this.data.critical.targetPosition = this.currentStimulus.targetPosition;
+                    this.data.critical.targetDotSide = this.currentStimulus.targetDotSide;
+                    this.data.critical.response = response;
+                    this.data.critical.correct = correct;
+                    this.data.critical.rt = rt;
+                } else if (trialType === 'divided') {
+                    this.data.divided.targetPosition = this.currentStimulus.targetPosition;
+                    this.data.divided.targetDotSide = this.currentStimulus.targetDotSide;
+                    this.data.divided.response = response;
+                    this.data.divided.correct = correct;
+                    this.data.divided.rt = rt;
+                }
+
+                // Brief pause showing the highlighted dot, then advance
+                setTimeout(() => {
+                    if (trialType === 'practice') {
+                        this.showFeedback(correct);
+                    } else if (trialType === 'preCritical') {
+                        this.nextTrial();
+                    } else if (trialType === 'critical' || trialType === 'divided') {
+                        this.showNoticeQuestion();
+                    }
+                }, 350);
+            },
+
+            // ============================================================
+            // FEEDBACK (practice only)
+            // ============================================================
+            showFeedback(correct) {
+                this.showScreen('feedbackScreen');
+                const fb = document.getElementById('feedbackText');
+                if (correct) {
+                    fb.className = 'feedback-correct';
+                    fb.textContent = 'Correct!';
+                } else {
+                    fb.className = 'feedback-incorrect';
+                    fb.textContent = 'Incorrect. The dot was on the ' + this.currentStimulus.targetDotSide + '.';
+                }
+            },
+
+            afterFeedback() {
+                this.nextTrial();
+            },
+
+            // ============================================================
+            // IB QUESTIONS
+            // ============================================================
+            showNoticeQuestion() {
+                this.showScreen('yesNoScreen');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                if (trialType === 'critical') {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "On the last trial, did you notice anything extra that wasn't there on the previous trials?";
+                } else {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "Did you notice an extra object on that trial?";
+                }
+            },
+
+            submitNotice(answer) {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                if (trialType === 'critical') {
+                    this.data.critical.noticed = answer;
+                } else {
+                    this.data.divided.noticed = answer;
+                }
+                console.log("Noticed:", answer, "Trial:", trialType);
+                this.showFaceSelection();
+            },
+
+            // ============================================================
+            // 3AFC FACE IDENTIFICATION
+            // ============================================================
+            showFaceSelection() {
+                this.showScreen('faceSelectionScreen');
+                this.selectedFace = null;
+
+                const basePath = this.imageConfig.basePath;
+                const choices = this.imageConfig.afcFaces.map(filename => ({
+                    id: this.getExpression(filename),
+                    src: basePath + filename,
+                    isCorrect: this.getExpression(filename) === this.data.ueoExpression
+                }));
+
+                for (let i = choices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [choices[i], choices[j]] = [choices[j], choices[i]];
+                }
+
+                const container = document.getElementById('faceChoicesContainer');
+                container.innerHTML = '';
+
+                choices.forEach(choice => {
+                    const div = document.createElement('div');
+                    div.className = 'choice-button face-choice';
+                    div.onclick = () => this.selectFace(choice.id, div);
+
+                    const img = document.createElement('img');
+                    img.src = choice.src;
+                    img.alt = 'Face option';
+
+                    div.appendChild(img);
+                    container.appendChild(div);
+                });
+            },
+
+            selectFace(faceId, element) {
+                document.querySelectorAll('.face-choice').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+                this.selectedFace = faceId;
+            },
+
+            submitFaceChoice() {
+                if (!this.selectedFace) {
+                    alert("Please select a face.");
+                    return;
+                }
+
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                if (trialType === 'critical') {
+                    this.data.critical.faceChoice = this.selectedFace;
+                } else {
+                    this.data.divided.faceChoice = this.selectedFace;
+                }
+
+                console.log("Face choice:", this.selectedFace, "Trial:", trialType,
+                            "Correct:", this.selectedFace === this.data.ueoExpression);
+
+                this.nextTrial();
+            },
+
+            // ============================================================
+            // TRIAL NAVIGATION
+            // ============================================================
+            nextTrial() {
+                this.state.currentTrial++;
+
+                if (this.state.currentTrial < this.state.trialSequence.length) {
+                    this.showInstructions();
+                } else {
+                    this.computeAccuracy();
+                    this.showVisionQuestions();
+                }
+            },
+
+            computeAccuracy() {
+                if (this.data.practice.correct.length > 0) {
+                    const n = this.data.practice.correct.filter(c => c).length;
+                    this.data.practiceAccuracy = parseFloat(
+                        ((n / this.data.practice.correct.length) * 100).toFixed(2)
+                    );
+                }
+                if (this.data.preCritical.correct.length > 0) {
+                    const n = this.data.preCritical.correct.filter(c => c).length;
+                    this.data.preCriticalAccuracy = parseFloat(
+                        ((n / this.data.preCritical.correct.length) * 100).toFixed(2)
+                    );
+                }
+            },
+
+            // ============================================================
+            // VISION QUESTIONS
+            // ============================================================
+            showVisionQuestions() {
+                this.showScreen('visionScreen');
+                document.getElementById('visionUsePrompt').classList.add('hidden');
+                document.getElementById('visionUseBtns').classList.add('hidden');
+            },
+
+            setVisionNeed(answer) {
+                this.data.visionCorrectionNeed = answer;
+                document.getElementById('visionNeedBtns').innerHTML =
+                    `<p style="color: #555;">Answer: ${answer}</p>`;
+                document.getElementById('visionUsePrompt').classList.remove('hidden');
+                document.getElementById('visionUseBtns').classList.remove('hidden');
+            },
+
+            setVisionUse(answer) {
+                this.data.visionCorrectionUse = answer;
+                console.log("Vision - Need:", this.data.visionCorrectionNeed,
+                            "Use:", this.data.visionCorrectionUse);
+                this.showFinalScreen();
+            },
+
+            showFinalScreen() {
+                this.showScreen('finalScreen');
+            },
+
+            // ============================================================
+            // SUBMIT ALL DATA
+            // ============================================================
+            submitData() {
+                this.timing.endTime = new Date();
+                this.data.endTime = this.formatDate(this.timing.endTime);
+                this.data.duration = Math.round((this.timing.endTime - this.timing.startTime) / 1000);
+
+                const form = document.getElementById('task_data');
+
+                form.study_name.value = this.data.studyName;
+                form.subject_code.value = this.data.subjectCode;
+                form.start_time.value = this.data.startTime;
+                form.end_time.value = this.data.endTime;
+                form.duration.value = this.data.duration;
+
+                form.num_faces.value = this.config.numFaces;
+                form.ring_radius.value = this.config.ringRadius;
+                form.face_size.value = this.config.faceSize;
+                form.dot_radius.value = this.config.dotRadius;
+                form.dot_offset.value = this.dotOffset;
+                form.dot_color.value = this.config.dotColor;
+                form.stimulus_duration.value = this.config.stimulusDuration;
+                form.fixation_duration.value = this.config.fixationDuration;
+                form.background_color.value = this.config.backgroundColor;
+
+                form.target_expression.value = this.data.targetExpression;
+                form.distractor_expression.value = this.data.distractorExpression;
+                form.ueo_expression.value = this.data.ueoExpression;
+                form.ueo_match_type.value = this.data.ueoMatchType;
+
+                form.practice_target_positions.value = JSON.stringify(this.data.practice.targetPositions);
+                form.practice_target_dot_sides.value = JSON.stringify(this.data.practice.targetDotSides);
+                form.practice_responses.value = JSON.stringify(this.data.practice.responses);
+                form.practice_correct.value = JSON.stringify(this.data.practice.correct);
+                form.practice_rts.value = JSON.stringify(this.data.practice.rts);
+                form.practice_accuracy.value = this.data.practiceAccuracy || '';
+
+                form.precritical_target_positions.value = JSON.stringify(this.data.preCritical.targetPositions);
+                form.precritical_target_dot_sides.value = JSON.stringify(this.data.preCritical.targetDotSides);
+                form.precritical_responses.value = JSON.stringify(this.data.preCritical.responses);
+                form.precritical_correct.value = JSON.stringify(this.data.preCritical.correct);
+                form.precritical_rts.value = JSON.stringify(this.data.preCritical.rts);
+                form.precritical_accuracy.value = this.data.preCriticalAccuracy || '';
+
+                form.critical_target_position.value = this.data.critical.targetPosition ?? '';
+                form.critical_target_dot_side.value = this.data.critical.targetDotSide || '';
+                form.critical_response.value = this.data.critical.response || '';
+                form.critical_correct.value = this.data.critical.correct ?? '';
+                form.critical_rt.value = this.data.critical.rt ?? '';
+                form.critical_noticed.value = this.data.critical.noticed || '';
+                form.critical_face_choice.value = this.data.critical.faceChoice || '';
+
+                form.divided_target_position.value = this.data.divided.targetPosition ?? '';
+                form.divided_target_dot_side.value = this.data.divided.targetDotSide || '';
+                form.divided_response.value = this.data.divided.response || '';
+                form.divided_correct.value = this.data.divided.correct ?? '';
+                form.divided_rt.value = this.data.divided.rt ?? '';
+                form.divided_noticed.value = this.data.divided.noticed || '';
+                form.divided_face_choice.value = this.data.divided.faceChoice || '';
+
+                form.vision_correction_need.value = this.data.visionCorrectionNeed || '';
+                form.vision_correction_use.value = this.data.visionCorrectionUse || '';
+
+                console.log("=== FINAL DATA ===");
+                console.log("Study:", this.data.studyName);
+                console.log("Subject:", this.data.subjectCode);
+                console.log("Duration:", this.data.duration, "seconds");
+                console.log("Practice accuracy:", this.data.practiceAccuracy);
+                console.log("PreCritical accuracy:", this.data.preCriticalAccuracy);
+                console.log("UEO match type:", this.data.ueoMatchType,
+                            "UEO expression:", this.data.ueoExpression);
+                console.log("Critical - noticed:", this.data.critical.noticed,
+                            "choice:", this.data.critical.faceChoice,
+                            "search correct:", this.data.critical.correct);
+                console.log("Divided  - noticed:", this.data.divided.noticed,
+                            "choice:", this.data.divided.faceChoice,
+                            "search correct:", this.data.divided.correct);
+                console.log("==================");
+
+                const formData = new FormData(form);
+                const dataObject = {};
+                formData.forEach((value, key) => { dataObject[key] = value; });
+
+                const json = JSON.stringify(dataObject);
+                console.log("JSON being sent:", json);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "data.php", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log("Server response:", xhr.responseText);
+                        if (xhr.status === 200) {
+                            window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1QBLCRQ';
+                            console.log("Data submitted successfully.");
+                        } else {
+                            console.error("Error submitting data");
+                        }
+                    }
+                };
+                xhr.send(json);
+            }
+        };
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        window.onload = function() {
+            console.log("Page loaded - Face Search IB Experiment");
+
+            experiment.loadImages().then(() => {
+                console.log("All images loaded successfully.");
+                experiment.init();
+                experiment.showInstructions();
+            }).catch((err) => {
+                console.error("Image loading error:", err);
+                document.getElementById('loadingScreen').innerHTML =
+                    `<p style="color: red; font-size: 18px;">Error loading images: ${err}</p>
+                     <p>Please ensure face images are in the <strong>Assets/</strong> folder.</p>`;
+            });
+        };
+    </script>
+</body>
+</html>

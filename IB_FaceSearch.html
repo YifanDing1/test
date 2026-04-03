@@ -61,7 +61,7 @@
             margin: 20px;
             font-size: 18px;
             line-height: 1.5;
-            padding: 40px;
+            padding: 20px 40px;
         }
 
         .response-section {
@@ -348,6 +348,7 @@
             state: {
                 currentTrial: 0,
                 trialSequence: [],
+                trialId: 0,             // increments each startTrial; stale timeouts check this
                 stimulusOnsetTime: null,
                 responded: false,
                 keyListener: null,
@@ -502,7 +503,7 @@
             // ============================================================
             buildFacePreviewHTML() {
                 return `
-                    <div style="margin: 20px 0;">
+                    <div style="margin: 10px 0;">
                         <canvas id="previewCanvas" width="180" height="130"
                                 style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
                         <p style="font-size: 14px; color: #555; margin-top: 6px;">
@@ -561,7 +562,7 @@
                             Press <span class="key-hint">→</span> if the dot is on the Right
                         </p>
                         <p>You will first do some practice trials with feedback.</p>
-                        <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin practice</p>`;
+                        <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin practice</p>`;
                 } else if (trialType === 'practice') {
                     // Auto-advance subsequent practice trials
                     this.startTrial();
@@ -574,7 +575,7 @@
                             ${facePreview}
                             <p><span class="key-hint">←</span> &nbsp;&nbsp;
                                <span class="key-hint">→</span></p>
-                            <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin</p>`;
+                            <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin</p>`;
                     } else {
                         // Auto-advance for subsequent preCritical trials
                         this.startTrial();
@@ -592,7 +593,7 @@
                            <span class="key-hint">→</span></p>
                         <p><strong>NEW:</strong> This time, also pay attention to whether
                         <strong>anything extra</strong> appears anywhere on screen.</p>
-                        <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin</p>`;
+                        <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin</p>`;
                 }
 
                 inst.innerHTML = message;
@@ -650,6 +651,8 @@
                 console.log("Starting trial:", this.state.currentTrial + 1, "Type:", trialType);
 
                 this.state.responded = false;
+                this.state.trialId++;
+                const myTrialId = this.state.trialId;
                 this.disableSpaceListener();
                 this.disableResponseListener();
                 this.generateTrialStimulus();
@@ -658,6 +661,8 @@
                 this.drawFixation();
 
                 setTimeout(() => {
+                    if (this.state.trialId !== myTrialId) return;
+
                     this.drawStimulus(trialType);
                     this.state.stimulusOnsetTime = performance.now();
 
@@ -665,9 +670,11 @@
 
                     // After stimulus duration, clear and show response screen
                     setTimeout(() => {
+                        if (this.state.trialId !== myTrialId) return;
                         if (!this.state.responded) {
                             this.drawBlank();
                             setTimeout(() => {
+                                if (this.state.trialId !== myTrialId) return;
                                 if (!this.state.responded) {
                                     this.showResponseScreen();
                                 }

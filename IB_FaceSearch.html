@@ -240,7 +240,7 @@
             <div id="feedbackSection" class="response-section">
                 <h2 id="feedbackText"></h2>
                 <br>
-                <button onclick="experiment.afterFeedback()">Continue</button>
+                <p style="color: #777;">Press <span class="key-hint">Space</span> to continue</p>
             </div>
         </div>
 
@@ -333,6 +333,7 @@
                 dotGrayColor: '#aaaaaa', // placeholder dot on response screen
                 stimulusDuration: 1000,
                 fixationDuration: 1000,
+                minResponseTime: 200,    // ms; ignore responses faster than this
                 canvasWidth: 600,
                 canvasHeight: 600,
                 backgroundColor: '#797979',
@@ -349,7 +350,8 @@
                 trialSequence: [],
                 stimulusOnsetTime: null,
                 responded: false,
-                keyListener: null
+                keyListener: null,
+                spaceListener: null
             },
 
             // ── Per-trial stimulus (regenerated each trial) ───────
@@ -559,14 +561,11 @@
                             Press <span class="key-hint">→</span> if the dot is on the Right
                         </p>
                         <p>You will first do some practice trials with feedback.</p>
-                        <br><button onclick="experiment.startTrial()">Click to begin practice</button>`;
+                        <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin practice</p>`;
                 } else if (trialType === 'practice') {
-                    message = `
-                        <p>Another practice trial. Find the target face and report the dot's side.</p>
-                        ${facePreview}
-                        <p><span class="key-hint">←</span> &nbsp;&nbsp;
-                           <span class="key-hint">→</span></p>
-                        <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                    // Auto-advance subsequent practice trials
+                    this.startTrial();
+                    return;
                 } else if (trialType === 'preCritical') {
                     if (this.state.trialSequence[this.state.currentTrial - 1] === 'practice') {
                         message = `
@@ -575,7 +574,7 @@
                             ${facePreview}
                             <p><span class="key-hint">←</span> &nbsp;&nbsp;
                                <span class="key-hint">→</span></p>
-                            <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                            <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin</p>`;
                     } else {
                         // Auto-advance for subsequent preCritical trials
                         this.startTrial();
@@ -593,13 +592,36 @@
                            <span class="key-hint">→</span></p>
                         <p><strong>NEW:</strong> This time, also pay attention to whether
                         <strong>anything extra</strong> appears anywhere on screen.</p>
-                        <br><button onclick="experiment.startTrial()">Click to begin</button>`;
+                        <br><p style="color: #777;">Press <span class="key-hint">Space</span> to begin</p>`;
                 }
 
                 inst.innerHTML = message;
 
                 // Draw the preview canvas after DOM update
                 requestAnimationFrame(() => this.drawPreviewCanvas());
+
+                // Listen for SPACE to advance
+                this.enableSpaceListener();
+            },
+
+            // Space bar listener for instruction screens
+            enableSpaceListener() {
+                this.disableSpaceListener();
+                this.state.spaceListener = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.disableSpaceListener();
+                        this.startTrial();
+                    }
+                };
+                document.addEventListener('keydown', this.state.spaceListener);
+            },
+
+            disableSpaceListener() {
+                if (this.state.spaceListener) {
+                    document.removeEventListener('keydown', this.state.spaceListener);
+                    this.state.spaceListener = null;
+                }
             },
 
             // ============================================================
@@ -628,6 +650,8 @@
                 console.log("Starting trial:", this.state.currentTrial + 1, "Type:", trialType);
 
                 this.state.responded = false;
+                this.disableSpaceListener();
+                this.disableResponseListener();
                 this.generateTrialStimulus();
 
                 this.showScreen('canvasScreen');
@@ -803,10 +827,13 @@
             },
 
             processResponse(response) {
+                const rt = Math.round(performance.now() - this.state.stimulusOnsetTime);
+
+                // Ignore responses faster than minimum (accidental keypresses)
+                if (rt < this.config.minResponseTime) return;
+
                 this.state.responded = true;
                 this.disableResponseListener();
-
-                const rt = Math.round(performance.now() - this.state.stimulusOnsetTime);
                 const correct = (response === this.currentStimulus.targetDotSide);
                 const trialType = this.state.trialSequence[this.state.currentTrial];
 
@@ -870,6 +897,18 @@
                     fb.className = 'feedback-incorrect';
                     fb.textContent = 'Incorrect. The dot was on the ' + this.currentStimulus.targetDotSide + '.';
                 }
+
+                // Enable space to continue after a short delay
+                setTimeout(() => {
+                    this.state.spaceListener = (e) => {
+                        if (e.code === 'Space') {
+                            e.preventDefault();
+                            this.disableSpaceListener();
+                            this.afterFeedback();
+                        }
+                    };
+                    document.addEventListener('keydown', this.state.spaceListener);
+                }, 400);
             },
 
             afterFeedback() {

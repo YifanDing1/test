@@ -99,7 +99,7 @@
         }
 
         .screen {
-            min-height: 660px;
+            min-height: 664px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -149,10 +149,9 @@
             <input type="hidden" name="end_time" value="">
             <input type="hidden" name="duration" value="">
             <!-- Config -->
-            <input type="hidden" name="num_ring_positions" value="">
-            <input type="hidden" name="ring_radius" value="">
+            <input type="hidden" name="quadrant_offset" value="">
+            <input type="hidden" name="face_gap" value="">
             <input type="hidden" name="face_size" value="">
-            <input type="hidden" name="ueo_size" value="">
             <input type="hidden" name="stimulus_duration" value="">
             <input type="hidden" name="fixation_duration" value="">
             <input type="hidden" name="background_color" value="">
@@ -163,21 +162,21 @@
             <input type="hidden" name="ueo_face" value="">
             <input type="hidden" name="ueo_match_type" value="">
             <!-- Practice -->
-            <input type="hidden" name="practice_pair_indices" value="">
+            <input type="hidden" name="practice_quadrants" value="">
             <input type="hidden" name="practice_trial_types" value="">
             <input type="hidden" name="practice_responses" value="">
             <input type="hidden" name="practice_correct" value="">
             <input type="hidden" name="practice_rts" value="">
             <input type="hidden" name="practice_accuracy" value="">
             <!-- Pre-critical -->
-            <input type="hidden" name="precritical_pair_indices" value="">
+            <input type="hidden" name="precritical_quadrants" value="">
             <input type="hidden" name="precritical_trial_types" value="">
             <input type="hidden" name="precritical_responses" value="">
             <input type="hidden" name="precritical_correct" value="">
             <input type="hidden" name="precritical_rts" value="">
             <input type="hidden" name="precritical_accuracy" value="">
             <!-- Critical -->
-            <input type="hidden" name="critical_pair_index" value="">
+            <input type="hidden" name="critical_quadrant" value="">
             <input type="hidden" name="critical_trial_type" value="">
             <input type="hidden" name="critical_response" value="">
             <input type="hidden" name="critical_correct" value="">
@@ -185,7 +184,7 @@
             <input type="hidden" name="critical_noticed" value="">
             <input type="hidden" name="critical_face_choice" value="">
             <!-- Divided -->
-            <input type="hidden" name="divided_pair_index" value="">
+            <input type="hidden" name="divided_quadrant" value="">
             <input type="hidden" name="divided_trial_type" value="">
             <input type="hidden" name="divided_response" value="">
             <input type="hidden" name="divided_correct" value="">
@@ -211,7 +210,7 @@
         <!-- Canvas Screen -->
         <div id="canvasScreen" class="screen hidden">
             <div id="canvasContainer">
-                <canvas id="canvas" width="600" height="600"></canvas>
+                <canvas id="canvas" width="660" height="660"></canvas>
             </div>
         </div>
 
@@ -323,19 +322,16 @@
 
             // ── Configuration ─────────────────────────────────────
             config: {
-                numRingPositions: 8,
-                // 4 opposite pairs on an 8-slot ring
-                // 0=top, 1=top-right, 2=right, 3=bottom-right,
-                // 4=bottom, 5=bottom-left, 6=left, 7=top-left
-                oppositePairs: [[0, 4], [1, 5], [2, 6], [3, 7]],
-                ringRadius: 150,
+                // 4 quadrant positions for the face pair (center offsets from canvas center)
+                // 0=top-left, 1=top-right, 2=bottom-right, 3=bottom-left
+                quadrantOffset: 150,      // px from canvas center to pair center
+                faceGap: 10,              // px gap between the two side-by-side faces
                 faceSize: 80,
-                ueoSize: 40,             // UEO is half the size of task faces
                 stimulusDuration: 500,
                 fixationDuration: 1000,
                 minResponseTime: 200,
-                canvasWidth: 600,
-                canvasHeight: 600,
+                canvasWidth: 660,
+                canvasHeight: 660,
                 backgroundColor: '#797979',
                 nPractice: 2,
                 nPreCritical: 3
@@ -355,15 +351,14 @@
             },
 
             // ── Per-trial stimulus ────────────────────────────────
-            // pairIndex: which of the 3 opposite pairs (0, 1, or 2)
-            // trialType: 'same' or 'different'
-            // faces: [fileA, fileB] — what's at each position
+            // quadrant: 0=TL, 1=TR, 2=BR, 3=BL
+            // matchType: 'same' or 'different'
+            // faces: [leftFile, rightFile]
             currentStimulus: {
-                pairIndex: -1,
-                matchType: null,       // 'same' or 'different'
-                correctResponse: null, // 'same' or 'different'
-                positions: [],         // [posA, posB] ring indices
-                faces: []              // [filenameA, filenameB]
+                quadrant: -1,
+                matchType: null,
+                correctResponse: null,
+                faces: []
             },
 
             // ── Data collection ───────────────────────────────────
@@ -380,20 +375,20 @@
                 ueoFace: null,
 
                 practice: {
-                    pairIndices: [], trialTypes: [],
+                    quadrants: [], trialTypes: [],
                     responses: [], correct: [], rts: []
                 },
                 preCritical: {
-                    pairIndices: [], trialTypes: [],
+                    quadrants: [], trialTypes: [],
                     responses: [], correct: [], rts: []
                 },
                 critical: {
-                    pairIndex: null, trialType: null,
+                    quadrant: null, trialType: null,
                     response: null, correct: null, rt: null,
                     noticed: null, faceChoice: null
                 },
                 divided: {
-                    pairIndex: null, trialType: null,
+                    quadrant: null, trialType: null,
                     response: null, correct: null, rt: null,
                     noticed: null, faceChoice: null
                 },
@@ -507,12 +502,12 @@
                 return `
                     <div style="margin: 10px 0; display: flex; justify-content: center; gap: 20px;">
                         <div>
-                            <canvas id="previewSame" width="140" height="140"
+                            <canvas id="previewSame" width="140" height="80"
                                     style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
                             <p style="font-size: 14px; color: #555; margin-top: 4px;">Same</p>
                         </div>
                         <div>
-                            <canvas id="previewDiff" width="140" height="140"
+                            <canvas id="previewDiff" width="140" height="80"
                                     style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
                             <p style="font-size: 14px; color: #555; margin-top: 4px;">Different</p>
                         </div>
@@ -522,22 +517,23 @@
             drawPreviewCanvases() {
                 const size = 55;
                 const half = size / 2;
-                const gap = 8;
+                const gap = 4;
 
-                // "Same" preview: both face A
+                // "Same" preview: both face A side by side
                 const pcSame = document.getElementById('previewSame');
                 if (pcSame) {
                     const ctx = pcSame.getContext('2d');
                     ctx.fillStyle = this.config.backgroundColor;
                     ctx.fillRect(0, 0, pcSame.width, pcSame.height);
                     const imgA = this.images[this.imageConfig.faceA];
+                    const cy = pcSame.height / 2 - half;
                     if (imgA) {
-                        ctx.drawImage(imgA, pcSame.width / 2 - half, gap, size, size);
-                        ctx.drawImage(imgA, pcSame.width / 2 - half, pcSame.height - gap - size, size, size);
+                        ctx.drawImage(imgA, pcSame.width / 2 - size - gap / 2, cy, size, size);
+                        ctx.drawImage(imgA, pcSame.width / 2 + gap / 2, cy, size, size);
                     }
                 }
 
-                // "Different" preview: face A top, face B bottom
+                // "Different" preview: face A left, face B right
                 const pcDiff = document.getElementById('previewDiff');
                 if (pcDiff) {
                     const ctx = pcDiff.getContext('2d');
@@ -545,8 +541,9 @@
                     ctx.fillRect(0, 0, pcDiff.width, pcDiff.height);
                     const imgA = this.images[this.imageConfig.faceA];
                     const imgB = this.images[this.imageConfig.faceB];
-                    if (imgA) ctx.drawImage(imgA, pcDiff.width / 2 - half, gap, size, size);
-                    if (imgB) ctx.drawImage(imgB, pcDiff.width / 2 - half, pcDiff.height - gap - size, size, size);
+                    const cy = pcDiff.height / 2 - half;
+                    if (imgA) ctx.drawImage(imgA, pcDiff.width / 2 - size - gap / 2, cy, size, size);
+                    if (imgB) ctx.drawImage(imgB, pcDiff.width / 2 + gap / 2, cy, size, size);
                 }
             },
 
@@ -635,36 +632,32 @@
             // STIMULUS GENERATION
             // ============================================================
             generateTrialStimulus() {
-                // Pick a random opposite pair
-                const pairIndex = Math.floor(Math.random() * this.config.oppositePairs.length);
-                const pair = this.config.oppositePairs[pairIndex];
+                // Pick a random quadrant (0=TL, 1=TR, 2=BR, 3=BL)
+                const quadrant = Math.floor(Math.random() * 4);
 
                 // Randomly same or different
                 const isSame = Math.random() < 0.5;
-                let faceAtPos0, faceAtPos1;
+                let faceLeft, faceRight;
 
                 if (isSame) {
-                    // Both same expression — randomly pick which one
                     const sameFile = Math.random() < 0.5 ? this.imageConfig.faceA : this.imageConfig.faceB;
-                    faceAtPos0 = sameFile;
-                    faceAtPos1 = sameFile;
+                    faceLeft = sameFile;
+                    faceRight = sameFile;
                 } else {
-                    // Different — randomly assign which goes where
                     if (Math.random() < 0.5) {
-                        faceAtPos0 = this.imageConfig.faceA;
-                        faceAtPos1 = this.imageConfig.faceB;
+                        faceLeft = this.imageConfig.faceA;
+                        faceRight = this.imageConfig.faceB;
                     } else {
-                        faceAtPos0 = this.imageConfig.faceB;
-                        faceAtPos1 = this.imageConfig.faceA;
+                        faceLeft = this.imageConfig.faceB;
+                        faceRight = this.imageConfig.faceA;
                     }
                 }
 
                 this.currentStimulus = {
-                    pairIndex: pairIndex,
+                    quadrant: quadrant,
                     matchType: isSame ? 'same' : 'different',
                     correctResponse: isSame ? 'same' : 'different',
-                    positions: pair,
-                    faces: [faceAtPos0, faceAtPos1]
+                    faces: [faceLeft, faceRight]
                 };
             },
 
@@ -748,26 +741,41 @@
                 ctx.fillStyle = this.config.backgroundColor;
                 ctx.fillRect(0, 0, cw, ch);
 
-                // Draw two faces at their ring positions
+                // Compute pair center from quadrant
+                // 0=TL, 1=TR, 2=BR, 3=BL
                 const stim = this.currentStimulus;
-                for (let i = 0; i < 2; i++) {
-                    const ringIndex = stim.positions[i];
-                    const angle = (2 * Math.PI / this.config.numRingPositions) * ringIndex - Math.PI / 2;
-                    const fx = cx + this.config.ringRadius * Math.cos(angle);
-                    const fy = cy + this.config.ringRadius * Math.sin(angle);
+                const off = this.config.quadrantOffset;
+                const quadrantCenters = [
+                    { x: cx - off, y: cy - off },   // top-left
+                    { x: cx + off, y: cy - off },   // top-right
+                    { x: cx + off, y: cy + off },   // bottom-right
+                    { x: cx - off, y: cy + off }    // bottom-left
+                ];
+                const pc = quadrantCenters[stim.quadrant];
 
-                    const faceImg = this.images[stim.faces[i]];
-                    if (faceImg) {
-                        const half = this.config.faceSize / 2;
-                        ctx.drawImage(faceImg, fx - half, fy - half, this.config.faceSize, this.config.faceSize);
-                    }
+                // Draw two faces side by side, centered on pair center
+                const halfGap = this.config.faceGap / 2;
+                const faceHalf = this.config.faceSize / 2;
+
+                // Left face: center at (pc.x - halfGap - faceHalf, pc.y)
+                const leftX = pc.x - halfGap - faceHalf;
+                const rightX = pc.x + halfGap + faceHalf;
+
+                const leftImg = this.images[stim.faces[0]];
+                const rightImg = this.images[stim.faces[1]];
+
+                if (leftImg) {
+                    ctx.drawImage(leftImg, leftX - faceHalf, pc.y - faceHalf, this.config.faceSize, this.config.faceSize);
+                }
+                if (rightImg) {
+                    ctx.drawImage(rightImg, rightX - faceHalf, pc.y - faceHalf, this.config.faceSize, this.config.faceSize);
                 }
 
-                // UEO at center on critical/divided (half size, possibly inverted)
+                // UEO at canvas center on critical/divided (same size as task faces)
                 if (trialType === 'critical' || trialType === 'divided') {
                     const ueoImg = this.images[this.state.ueoFile];
                     if (ueoImg) {
-                        this.drawFaceImage(ctx, ueoImg, cx, cy, this.config.ueoSize, this.state.ueoInverted);
+                        this.drawFaceImage(ctx, ueoImg, cx, cy, this.config.faceSize, this.state.ueoInverted);
                     }
                 }
             },
@@ -827,30 +835,30 @@
                 console.log("Response:", response,
                             "Correct answer:", this.currentStimulus.correctResponse,
                             "Match:", correct, "RT:", rt + "ms",
-                            "Pair:", this.currentStimulus.pairIndex,
+                            "Quadrant:", this.currentStimulus.quadrant,
                             "Trial:", trialType);
 
                 // Store data
                 if (trialType === 'practice') {
-                    this.data.practice.pairIndices.push(this.currentStimulus.pairIndex);
+                    this.data.practice.quadrants.push(this.currentStimulus.quadrant);
                     this.data.practice.trialTypes.push(this.currentStimulus.matchType);
                     this.data.practice.responses.push(response);
                     this.data.practice.correct.push(correct);
                     this.data.practice.rts.push(rt);
                 } else if (trialType === 'preCritical') {
-                    this.data.preCritical.pairIndices.push(this.currentStimulus.pairIndex);
+                    this.data.preCritical.quadrants.push(this.currentStimulus.quadrant);
                     this.data.preCritical.trialTypes.push(this.currentStimulus.matchType);
                     this.data.preCritical.responses.push(response);
                     this.data.preCritical.correct.push(correct);
                     this.data.preCritical.rts.push(rt);
                 } else if (trialType === 'critical') {
-                    this.data.critical.pairIndex = this.currentStimulus.pairIndex;
+                    this.data.critical.quadrant = this.currentStimulus.quadrant;
                     this.data.critical.trialType = this.currentStimulus.matchType;
                     this.data.critical.response = response;
                     this.data.critical.correct = correct;
                     this.data.critical.rt = rt;
                 } else if (trialType === 'divided') {
-                    this.data.divided.pairIndex = this.currentStimulus.pairIndex;
+                    this.data.divided.quadrant = this.currentStimulus.quadrant;
                     this.data.divided.trialType = this.currentStimulus.matchType;
                     this.data.divided.response = response;
                     this.data.divided.correct = correct;
@@ -1079,10 +1087,9 @@
                 form.end_time.value = this.data.endTime;
                 form.duration.value = this.data.duration;
 
-                form.num_ring_positions.value = this.config.numRingPositions;
-                form.ring_radius.value = this.config.ringRadius;
+                form.quadrant_offset.value = this.config.quadrantOffset;
+                form.face_gap.value = this.config.faceGap;
                 form.face_size.value = this.config.faceSize;
-                form.ueo_size.value = this.config.ueoSize;
                 form.stimulus_duration.value = this.config.stimulusDuration;
                 form.fixation_duration.value = this.config.fixationDuration;
                 form.background_color.value = this.config.backgroundColor;
@@ -1094,7 +1101,7 @@
                 form.ueo_match_type.value = this.data.ueoMatchType;
 
                 // Practice
-                form.practice_pair_indices.value = JSON.stringify(this.data.practice.pairIndices);
+                form.practice_quadrants.value = JSON.stringify(this.data.practice.quadrants);
                 form.practice_trial_types.value = JSON.stringify(this.data.practice.trialTypes);
                 form.practice_responses.value = JSON.stringify(this.data.practice.responses);
                 form.practice_correct.value = JSON.stringify(this.data.practice.correct);
@@ -1102,7 +1109,7 @@
                 form.practice_accuracy.value = this.data.practiceAccuracy || '';
 
                 // Pre-critical
-                form.precritical_pair_indices.value = JSON.stringify(this.data.preCritical.pairIndices);
+                form.precritical_quadrants.value = JSON.stringify(this.data.preCritical.quadrants);
                 form.precritical_trial_types.value = JSON.stringify(this.data.preCritical.trialTypes);
                 form.precritical_responses.value = JSON.stringify(this.data.preCritical.responses);
                 form.precritical_correct.value = JSON.stringify(this.data.preCritical.correct);
@@ -1110,7 +1117,7 @@
                 form.precritical_accuracy.value = this.data.preCriticalAccuracy || '';
 
                 // Critical
-                form.critical_pair_index.value = this.data.critical.pairIndex ?? '';
+                form.critical_quadrant.value = this.data.critical.quadrant ?? '';
                 form.critical_trial_type.value = this.data.critical.trialType || '';
                 form.critical_response.value = this.data.critical.response || '';
                 form.critical_correct.value = this.data.critical.correct ?? '';
@@ -1119,7 +1126,7 @@
                 form.critical_face_choice.value = this.data.critical.faceChoice || '';
 
                 // Divided
-                form.divided_pair_index.value = this.data.divided.pairIndex ?? '';
+                form.divided_quadrant.value = this.data.divided.quadrant ?? '';
                 form.divided_trial_type.value = this.data.divided.trialType || '';
                 form.divided_response.value = this.data.divided.response || '';
                 form.divided_correct.value = this.data.divided.correct ?? '';

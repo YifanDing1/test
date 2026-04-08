@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inattentional Blindness - Face Same/Different</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        #experimentContainer {
+            max-width: 800px;
+            min-height: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #canvasContainer { text-align: center; }
+
+        #canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #333;
+            background-color: #797979;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        input[type="text"] {
+            font-size: 16px;
+            padding: 5px;
+            width: 350px;
+            margin: 5px;
+        }
+
+        .hidden { display: none !important; }
+
+        #instructions {
+            text-align: center;
+            margin: 20px;
+            font-size: 18px;
+            line-height: 1.5;
+            padding: 20px 40px;
+        }
+
+        .response-section {
+            background: #f9f9f9;
+            padding: 40px;
+            border-radius: 5px;
+            margin: 10px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .choice-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #797979;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .choice-button:hover {
+            border-color: #4CAF50;
+            background-color: #8a8a8a;
+        }
+
+        .choice-button.selected {
+            border-color: #4CAF50;
+        }
+
+        .choice-button img {
+            display: block;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .screen {
+            min-height: 660px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .key-hint {
+            display: inline-block;
+            padding: 4px 12px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            background: #eee;
+            margin: 0 4px;
+        }
+
+        #loadingScreen {
+            text-align: center;
+            font-size: 20px;
+        }
+
+        #loadingScreen .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .feedback-correct { color: #00cc00; font-size: 32px; font-weight: bold; }
+        .feedback-incorrect { color: #cc0000; font-size: 32px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="experimentContainer">
+        <!-- Hidden form for data submission -->
+        <form id="task_data" name="task_data" action="data.php" method="post">
+            <input type="hidden" name="study_name" value="">
+            <input type="hidden" name="subject_code" value="">
+            <input type="hidden" name="start_time" value="">
+            <input type="hidden" name="end_time" value="">
+            <input type="hidden" name="duration" value="">
+            <!-- Config -->
+            <input type="hidden" name="num_ring_positions" value="">
+            <input type="hidden" name="ring_radius" value="">
+            <input type="hidden" name="face_size" value="">
+            <input type="hidden" name="ueo_size" value="">
+            <input type="hidden" name="stimulus_duration" value="">
+            <input type="hidden" name="fixation_duration" value="">
+            <input type="hidden" name="background_color" value="">
+            <!-- Stimulus -->
+            <input type="hidden" name="face_a_expression" value="">
+            <input type="hidden" name="face_b_expression" value="">
+            <input type="hidden" name="ueo_expression" value="">
+            <input type="hidden" name="ueo_face" value="">
+            <input type="hidden" name="ueo_match_type" value="">
+            <!-- Practice -->
+            <input type="hidden" name="practice_pair_indices" value="">
+            <input type="hidden" name="practice_trial_types" value="">
+            <input type="hidden" name="practice_responses" value="">
+            <input type="hidden" name="practice_correct" value="">
+            <input type="hidden" name="practice_rts" value="">
+            <input type="hidden" name="practice_accuracy" value="">
+            <!-- Pre-critical -->
+            <input type="hidden" name="precritical_pair_indices" value="">
+            <input type="hidden" name="precritical_trial_types" value="">
+            <input type="hidden" name="precritical_responses" value="">
+            <input type="hidden" name="precritical_correct" value="">
+            <input type="hidden" name="precritical_rts" value="">
+            <input type="hidden" name="precritical_accuracy" value="">
+            <!-- Critical -->
+            <input type="hidden" name="critical_pair_index" value="">
+            <input type="hidden" name="critical_trial_type" value="">
+            <input type="hidden" name="critical_response" value="">
+            <input type="hidden" name="critical_correct" value="">
+            <input type="hidden" name="critical_rt" value="">
+            <input type="hidden" name="critical_noticed" value="">
+            <input type="hidden" name="critical_face_choice" value="">
+            <!-- Divided -->
+            <input type="hidden" name="divided_pair_index" value="">
+            <input type="hidden" name="divided_trial_type" value="">
+            <input type="hidden" name="divided_response" value="">
+            <input type="hidden" name="divided_correct" value="">
+            <input type="hidden" name="divided_rt" value="">
+            <input type="hidden" name="divided_noticed" value="">
+            <input type="hidden" name="divided_face_choice" value="">
+            <!-- Vision -->
+            <input type="hidden" name="vision_correction_need" value="">
+            <input type="hidden" name="vision_correction_use" value="">
+        </form>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="screen">
+            <div class="spinner"></div>
+            <p>Loading experiment images...</p>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructionScreen" class="screen hidden">
+            <div id="instructions"><p>Loading...</p></div>
+        </div>
+
+        <!-- Canvas Screen -->
+        <div id="canvasScreen" class="screen hidden">
+            <div id="canvasContainer">
+                <canvas id="canvas" width="600" height="600"></canvas>
+            </div>
+        </div>
+
+        <!-- Response Screen (same/different) -->
+        <div id="responseScreen" class="screen hidden">
+            <div id="responseSection" class="response-section">
+                <h2>Were the two faces the same or different?</h2>
+                <p style="margin-top: 20px;">
+                    <span class="key-hint">S</span> Same &nbsp;&nbsp;&nbsp;&nbsp;
+                    Different <span class="key-hint">D</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Feedback Screen (practice only) -->
+        <div id="feedbackScreen" class="screen hidden">
+            <div id="feedbackSection" class="response-section">
+                <h2 id="feedbackText"></h2>
+                <br>
+                <p style="color: #777;">Press <span class="key-hint">Space</span> to continue</p>
+            </div>
+        </div>
+
+        <!-- Yes/No Question Screen -->
+        <div id="yesNoScreen" class="screen hidden">
+            <div id="yesNoSection" class="response-section">
+                <h2 id="yesNoQuestion"></h2>
+                <button onclick="experiment.submitNotice('Yes')">Yes</button>
+                <button onclick="experiment.submitNotice('No')">No</button>
+            </div>
+        </div>
+
+        <!-- Face Selection Screen (4AFC) -->
+        <div id="faceSelectionScreen" class="screen hidden">
+            <div id="faceSelectionSection" class="response-section">
+                <h2>There was actually an extra face at the center of the display. Please select the face you saw. If you didn't see it, please guess.</h2>
+                <div id="faceChoicesContainer" style="display: flex; flex-direction: column; align-items: center; gap: 5px; margin: 20px 0;"></div>
+                <button onclick="experiment.submitFaceChoice()">Submit Choice</button>
+            </div>
+        </div>
+
+        <!-- Vision Questions Screen -->
+        <div id="visionScreen" class="screen hidden">
+            <div id="visionSection" class="response-section">
+                <h2>Vision Questions</h2>
+                <p style="margin: 20px 0;">Do you need vision correction (glasses, contacts)?</p>
+                <div id="visionNeedBtns">
+                    <button onclick="experiment.setVisionNeed('Yes')">Yes</button>
+                    <button onclick="experiment.setVisionNeed('No')">No</button>
+                </div>
+                <p style="margin: 20px 0;" id="visionUsePrompt" class="hidden">Are you currently using vision correction?</p>
+                <div id="visionUseBtns" class="hidden">
+                    <button onclick="experiment.setVisionUse('Yes')">Yes</button>
+                    <button onclick="experiment.setVisionUse('No')">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="finalScreen" class="screen hidden">
+            <div id="finalSection" class="response-section">
+                <h2>Thank you for completing the task!</h2>
+                <p>Click 'Continue' to go back to Prolific.</p>
+                <button id="finalSubmit" onclick="experiment.submitData()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FACE SAME/DIFFERENT IB EXPERIMENT
+        //
+        // Two faces appear on opposite positions of a 6-slot ring.
+        // They are either the same expression (both happy or both sad)
+        // or different (one happy, one sad).
+        // Participant judges same (S) vs different (D).
+        //
+        // On critical/divided trials, a UEO face appears at the center.
+        //
+        // After noticing question → 4AFC identification.
+        //
+        // Trial structure:
+        //   practice × N → preCritical × N → critical → IB Qs →
+        //   divided instruction → divided → IB Qs → vision → end
+        // ============================================================
+        const experiment = {
+            // ── Image assets ──────────────────────────────────────
+            imageConfig: {
+                basePath: 'Assets/',
+                faceA: 'person1_happy.png',     // primary task face A
+                faceB: 'person1_sad.png',       // primary task face B
+                // UEO options: happy/sad × upright/inverted (inverted drawn via flip)
+                ueoOptions: [
+                    { file: 'person1_happy.png', inverted: false, id: 'person1_happy' },
+                    { file: 'person1_sad.png',   inverted: false, id: 'person1_sad' },
+                    { file: 'person1_happy.png', inverted: true,  id: 'person1_happy_inverted' },
+                    { file: 'person1_sad.png',   inverted: true,  id: 'person1_sad_inverted' }
+                ],
+                // 4AFC options (same structure)
+                afcOptions: [
+                    { file: 'person1_happy.png', inverted: false, id: 'person1_happy' },
+                    { file: 'person1_sad.png',   inverted: false, id: 'person1_sad' },
+                    { file: 'person1_happy.png', inverted: true,  id: 'person1_happy_inverted' },
+                    { file: 'person1_sad.png',   inverted: true,  id: 'person1_sad_inverted' }
+                ]
+            },
+
+            images: {},
+
+            // ── Configuration ─────────────────────────────────────
+            config: {
+                numRingPositions: 8,
+                // 4 opposite pairs on an 8-slot ring
+                // 0=top, 1=top-right, 2=right, 3=bottom-right,
+                // 4=bottom, 5=bottom-left, 6=left, 7=top-left
+                oppositePairs: [[0, 4], [1, 5], [2, 6], [3, 7]],
+                ringRadius: 150,
+                faceSize: 80,
+                ueoSize: 40,             // UEO is half the size of task faces
+                stimulusDuration: 500,
+                fixationDuration: 1000,
+                minResponseTime: 200,
+                canvasWidth: 600,
+                canvasHeight: 600,
+                backgroundColor: '#797979',
+                nPractice: 2,
+                nPreCritical: 3
+            },
+
+            // ── State ─────────────────────────────────────────────
+            state: {
+                currentTrial: 0,
+                trialSequence: [],
+                trialId: 0,
+                stimulusOnsetTime: null,
+                responded: false,
+                keyListener: null,
+                spaceListener: null,
+                ueoFile: null,
+                ueoInverted: false
+            },
+
+            // ── Per-trial stimulus ────────────────────────────────
+            // pairIndex: which of the 3 opposite pairs (0, 1, or 2)
+            // trialType: 'same' or 'different'
+            // faces: [fileA, fileB] — what's at each position
+            currentStimulus: {
+                pairIndex: -1,
+                matchType: null,       // 'same' or 'different'
+                correctResponse: null, // 'same' or 'different'
+                positions: [],         // [posA, posB] ring indices
+                faces: []              // [filenameA, filenameB]
+            },
+
+            // ── Data collection ───────────────────────────────────
+            data: {
+                studyName: 'FaceSameDiff_IB_Pilot1',
+                subjectCode: null,
+                startTime: '',
+                endTime: '',
+                duration: 0,
+                faceAExpression: null,
+                faceBExpression: null,
+                ueoExpression: null,
+                ueoMatchType: null,
+                ueoFace: null,
+
+                practice: {
+                    pairIndices: [], trialTypes: [],
+                    responses: [], correct: [], rts: []
+                },
+                preCritical: {
+                    pairIndices: [], trialTypes: [],
+                    responses: [], correct: [], rts: []
+                },
+                critical: {
+                    pairIndex: null, trialType: null,
+                    response: null, correct: null, rt: null,
+                    noticed: null, faceChoice: null
+                },
+                divided: {
+                    pairIndex: null, trialType: null,
+                    response: null, correct: null, rt: null,
+                    noticed: null, faceChoice: null
+                },
+
+                practiceAccuracy: null,
+                preCriticalAccuracy: null,
+                visionCorrectionNeed: null,
+                visionCorrectionUse: null
+            },
+
+            timing: { startTime: null, endTime: null },
+
+            // ============================================================
+            // IMAGE LOADING
+            // ============================================================
+            loadImages() {
+                return new Promise((resolve, reject) => {
+                    const toLoad = [];
+                    const basePath = this.imageConfig.basePath;
+
+                    const allFiles = new Set([
+                        this.imageConfig.faceA,
+                        this.imageConfig.faceB
+                    ]);
+
+                    allFiles.forEach(filename => {
+                        const img = new Image();
+                        img.src = basePath + filename;
+                        toLoad.push(new Promise((res, rej) => {
+                            img.onload = () => { this.images[filename] = img; res(); };
+                            img.onerror = () => rej('Failed to load ' + filename);
+                        }));
+                    });
+
+                    Promise.all(toLoad).then(resolve).catch(reject);
+                });
+            },
+
+            // ============================================================
+            // INITIALIZATION
+            // ============================================================
+            init() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                const urlParams = new URLSearchParams(window.location.search);
+                this.data.subjectCode = urlParams.get('subject_code') || 'test_subject';
+
+                this.data.faceAExpression = this.getExpression(this.imageConfig.faceA);
+                this.data.faceBExpression = this.getExpression(this.imageConfig.faceB);
+
+                // Randomize UEO from 4 options: happy/sad × upright/inverted
+                const ueoOptions = this.imageConfig.ueoOptions;
+                const ueoChoice = ueoOptions[Math.floor(Math.random() * ueoOptions.length)];
+                this.state.ueoFile = ueoChoice.file;
+                this.state.ueoInverted = ueoChoice.inverted;
+                this.data.ueoExpression = this.getExpression(ueoChoice.file);
+
+                // Determine match type
+                this.data.ueoMatchType = ueoChoice.inverted ? 'inverted' : 'upright';
+                this.data.ueoFace = ueoChoice.id;
+
+                // Build trial sequence
+                this.state.trialSequence = [];
+                for (let i = 0; i < this.config.nPractice; i++) this.state.trialSequence.push('practice');
+                for (let i = 0; i < this.config.nPreCritical; i++) this.state.trialSequence.push('preCritical');
+                this.state.trialSequence.push('critical');
+                this.state.trialSequence.push('divided');
+
+                this.timing.startTime = new Date();
+                this.data.startTime = this.formatDate(this.timing.startTime);
+
+                console.log("Experiment initialized - Face Same/Different IB");
+                console.log("Face A:", this.data.faceAExpression,
+                            "Face B:", this.data.faceBExpression);
+                console.log("UEO match:", this.data.ueoMatchType,
+                            "face:", this.data.ueoFace,
+                            "expression:", this.data.ueoExpression);
+                console.log("Trial sequence:", this.state.trialSequence);
+            },
+
+            // ============================================================
+            // HELPERS
+            // ============================================================
+            formatDate(date) {
+                const options = {
+                    timeZone: 'America/Chicago',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false
+                };
+                const cstDateString = new Intl.DateTimeFormat('en-US', options).format(date);
+                const [datePart, timePart] = cstDateString.split(', ');
+                const [month, day, year] = datePart.split('/');
+                return `${year}/${month}/${day} ${timePart}`;
+            },
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+                document.getElementById(screenId).classList.remove('hidden');
+            },
+
+            getExpression(filename) {
+                return filename.replace(/\.png$/i, '').split('_').pop();
+            },
+
+            // ============================================================
+            // INSTRUCTION PREVIEW: canvas showing example same & different
+            // ============================================================
+            buildFacePreviewHTML() {
+                return `
+                    <div style="margin: 10px 0; display: flex; justify-content: center; gap: 20px;">
+                        <div>
+                            <canvas id="previewSame" width="140" height="140"
+                                    style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
+                            <p style="font-size: 14px; color: #555; margin-top: 4px;">Same</p>
+                        </div>
+                        <div>
+                            <canvas id="previewDiff" width="140" height="140"
+                                    style="display: block; margin: 0 auto; border-radius: 8px;"></canvas>
+                            <p style="font-size: 14px; color: #555; margin-top: 4px;">Different</p>
+                        </div>
+                    </div>`;
+            },
+
+            drawPreviewCanvases() {
+                const size = 55;
+                const half = size / 2;
+                const gap = 8;
+
+                // "Same" preview: both face A
+                const pcSame = document.getElementById('previewSame');
+                if (pcSame) {
+                    const ctx = pcSame.getContext('2d');
+                    ctx.fillStyle = this.config.backgroundColor;
+                    ctx.fillRect(0, 0, pcSame.width, pcSame.height);
+                    const imgA = this.images[this.imageConfig.faceA];
+                    if (imgA) {
+                        ctx.drawImage(imgA, pcSame.width / 2 - half, gap, size, size);
+                        ctx.drawImage(imgA, pcSame.width / 2 - half, pcSame.height - gap - size, size, size);
+                    }
+                }
+
+                // "Different" preview: face A top, face B bottom
+                const pcDiff = document.getElementById('previewDiff');
+                if (pcDiff) {
+                    const ctx = pcDiff.getContext('2d');
+                    ctx.fillStyle = this.config.backgroundColor;
+                    ctx.fillRect(0, 0, pcDiff.width, pcDiff.height);
+                    const imgA = this.images[this.imageConfig.faceA];
+                    const imgB = this.images[this.imageConfig.faceB];
+                    if (imgA) ctx.drawImage(imgA, pcDiff.width / 2 - half, gap, size, size);
+                    if (imgB) ctx.drawImage(imgB, pcDiff.width / 2 - half, pcDiff.height - gap - size, size, size);
+                }
+            },
+
+            // ============================================================
+            // INSTRUCTIONS
+            // ============================================================
+            showInstructions() {
+                this.showScreen('instructionScreen');
+                const inst = document.getElementById('instructions');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                const facePreview = this.buildFacePreviewHTML();
+
+                let message = "";
+
+                if (this.state.currentTrial === 0) {
+                    message = `
+                        <p>In this task, you will briefly see two faces on screen.</p>
+                        <p>The two faces will either have the <strong>same</strong> expression
+                        or <strong>different</strong> expressions.</p>
+                        ${facePreview}
+                        <p>Your task is to judge whether the two faces are the same or different:</p>
+                        <p>
+                            Press <span class="key-hint">S</span> for Same &nbsp;&nbsp;
+                            Press <span class="key-hint">D</span> for Different
+                        </p>
+                        <p>You will first do some practice trials with feedback.</p>
+                        <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin practice</p>`;
+                } else if (trialType === 'practice') {
+                    this.startTrial();
+                    return;
+                } else if (trialType === 'preCritical') {
+                    if (this.state.trialSequence[this.state.currentTrial - 1] === 'practice') {
+                        message = `
+                            <p>We will now begin the real trials. You will no longer receive feedback.</p>
+                            <p>Same task: judge whether the two faces are the same or different.</p>
+                            <p>
+                                <span class="key-hint">S</span> Same &nbsp;&nbsp;
+                                <span class="key-hint">D</span> Different
+                            </p>
+                            <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin</p>`;
+                    } else {
+                        this.startTrial();
+                        return;
+                    }
+                } else if (trialType === 'critical') {
+                    this.startTrial();
+                    return;
+                } else if (trialType === 'divided') {
+                    message = `
+                        <p>Same task: judge whether the two faces are the same or different.</p>
+                        <p>
+                            <span class="key-hint">S</span> Same &nbsp;&nbsp;
+                            <span class="key-hint">D</span> Different
+                        </p>
+                        <p><strong>NEW:</strong> This time, also pay attention to whether
+                        <strong>anything extra</strong> appears anywhere on screen.</p>
+                        <p style="color: #777; margin-top: 10px;">Press <span class="key-hint">Space</span> to begin</p>`;
+                }
+
+                inst.innerHTML = message;
+                requestAnimationFrame(() => this.drawPreviewCanvases());
+                this.enableSpaceListener();
+            },
+
+            // Space bar listener
+            enableSpaceListener() {
+                this.disableSpaceListener();
+                this.state.spaceListener = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.disableSpaceListener();
+                        this.startTrial();
+                    }
+                };
+                document.addEventListener('keydown', this.state.spaceListener);
+            },
+
+            disableSpaceListener() {
+                if (this.state.spaceListener) {
+                    document.removeEventListener('keydown', this.state.spaceListener);
+                    this.state.spaceListener = null;
+                }
+            },
+
+            // ============================================================
+            // STIMULUS GENERATION
+            // ============================================================
+            generateTrialStimulus() {
+                // Pick a random opposite pair
+                const pairIndex = Math.floor(Math.random() * this.config.oppositePairs.length);
+                const pair = this.config.oppositePairs[pairIndex];
+
+                // Randomly same or different
+                const isSame = Math.random() < 0.5;
+                let faceAtPos0, faceAtPos1;
+
+                if (isSame) {
+                    // Both same expression — randomly pick which one
+                    const sameFile = Math.random() < 0.5 ? this.imageConfig.faceA : this.imageConfig.faceB;
+                    faceAtPos0 = sameFile;
+                    faceAtPos1 = sameFile;
+                } else {
+                    // Different — randomly assign which goes where
+                    if (Math.random() < 0.5) {
+                        faceAtPos0 = this.imageConfig.faceA;
+                        faceAtPos1 = this.imageConfig.faceB;
+                    } else {
+                        faceAtPos0 = this.imageConfig.faceB;
+                        faceAtPos1 = this.imageConfig.faceA;
+                    }
+                }
+
+                this.currentStimulus = {
+                    pairIndex: pairIndex,
+                    matchType: isSame ? 'same' : 'different',
+                    correctResponse: isSame ? 'same' : 'different',
+                    positions: pair,
+                    faces: [faceAtPos0, faceAtPos1]
+                };
+            },
+
+            // ============================================================
+            // TRIAL EXECUTION
+            // ============================================================
+            startTrial() {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                console.log("Starting trial:", this.state.currentTrial + 1, "Type:", trialType);
+
+                this.state.responded = false;
+                this.state.trialId++;
+                const myTrialId = this.state.trialId;
+                this.disableSpaceListener();
+                this.disableResponseListener();
+                this.generateTrialStimulus();
+
+                this.showScreen('canvasScreen');
+                this.drawFixation();
+
+                setTimeout(() => {
+                    if (this.state.trialId !== myTrialId) return;
+
+                    this.drawStimulus(trialType);
+                    this.state.stimulusOnsetTime = performance.now();
+                    this.enableResponseListener();
+
+                    // After stimulus duration, clear and show response screen
+                    setTimeout(() => {
+                        if (this.state.trialId !== myTrialId) return;
+                        if (!this.state.responded) {
+                            this.drawBlank();
+                            setTimeout(() => {
+                                if (this.state.trialId !== myTrialId) return;
+                                if (!this.state.responded) {
+                                    this.showScreen('responseScreen');
+                                }
+                            }, 100);
+                        }
+                    }, this.config.stimulusDuration);
+
+                }, this.config.fixationDuration);
+            },
+
+            // ============================================================
+            // CANVAS DRAWING
+            // ============================================================
+            drawFixation() {
+                const ctx = this.ctx;
+                const cw = this.config.canvasWidth;
+                const ch = this.config.canvasHeight;
+
+                ctx.fillStyle = this.config.backgroundColor;
+                ctx.fillRect(0, 0, cw, ch);
+
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                const cx = cw / 2;
+                const cy = ch / 2;
+                const arm = 15;
+                ctx.beginPath();
+                ctx.moveTo(cx - arm, cy);
+                ctx.lineTo(cx + arm, cy);
+                ctx.moveTo(cx, cy - arm);
+                ctx.lineTo(cx, cy + arm);
+                ctx.stroke();
+            },
+
+            drawBlank() {
+                this.ctx.fillStyle = this.config.backgroundColor;
+                this.ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
+            },
+
+            drawStimulus(trialType) {
+                const ctx = this.ctx;
+                const cw = this.config.canvasWidth;
+                const ch = this.config.canvasHeight;
+                const cx = cw / 2;
+                const cy = ch / 2;
+
+                ctx.fillStyle = this.config.backgroundColor;
+                ctx.fillRect(0, 0, cw, ch);
+
+                // Draw two faces at their ring positions
+                const stim = this.currentStimulus;
+                for (let i = 0; i < 2; i++) {
+                    const ringIndex = stim.positions[i];
+                    const angle = (2 * Math.PI / this.config.numRingPositions) * ringIndex - Math.PI / 2;
+                    const fx = cx + this.config.ringRadius * Math.cos(angle);
+                    const fy = cy + this.config.ringRadius * Math.sin(angle);
+
+                    const faceImg = this.images[stim.faces[i]];
+                    if (faceImg) {
+                        const half = this.config.faceSize / 2;
+                        ctx.drawImage(faceImg, fx - half, fy - half, this.config.faceSize, this.config.faceSize);
+                    }
+                }
+
+                // UEO at center on critical/divided (half size, possibly inverted)
+                if (trialType === 'critical' || trialType === 'divided') {
+                    const ueoImg = this.images[this.state.ueoFile];
+                    if (ueoImg) {
+                        this.drawFaceImage(ctx, ueoImg, cx, cy, this.config.ueoSize, this.state.ueoInverted);
+                    }
+                }
+            },
+
+            // Draw a face image centered at (x, y) with optional vertical flip
+            drawFaceImage(ctx, img, x, y, size, inverted) {
+                const half = size / 2;
+                if (inverted) {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.scale(1, -1);
+                    ctx.drawImage(img, -half, -half, size, size);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(img, x - half, y - half, size, size);
+                }
+            },
+
+            // ============================================================
+            // RESPONSE HANDLING — S for same, D for different
+            // ============================================================
+            enableResponseListener() {
+                this.disableResponseListener();
+
+                this.state.keyListener = (e) => {
+                    if (this.state.responded) return;
+                    const key = e.key.toLowerCase();
+                    if (key === 's') {
+                        e.preventDefault();
+                        this.processResponse('same');
+                    } else if (key === 'd') {
+                        e.preventDefault();
+                        this.processResponse('different');
+                    }
+                };
+
+                document.addEventListener('keydown', this.state.keyListener);
+            },
+
+            disableResponseListener() {
+                if (this.state.keyListener) {
+                    document.removeEventListener('keydown', this.state.keyListener);
+                    this.state.keyListener = null;
+                }
+            },
+
+            processResponse(response) {
+                const rt = Math.round(performance.now() - this.state.stimulusOnsetTime);
+                if (rt < this.config.minResponseTime) return;
+
+                this.state.responded = true;
+                this.disableResponseListener();
+
+                const correct = (response === this.currentStimulus.correctResponse);
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                console.log("Response:", response,
+                            "Correct answer:", this.currentStimulus.correctResponse,
+                            "Match:", correct, "RT:", rt + "ms",
+                            "Pair:", this.currentStimulus.pairIndex,
+                            "Trial:", trialType);
+
+                // Store data
+                if (trialType === 'practice') {
+                    this.data.practice.pairIndices.push(this.currentStimulus.pairIndex);
+                    this.data.practice.trialTypes.push(this.currentStimulus.matchType);
+                    this.data.practice.responses.push(response);
+                    this.data.practice.correct.push(correct);
+                    this.data.practice.rts.push(rt);
+                } else if (trialType === 'preCritical') {
+                    this.data.preCritical.pairIndices.push(this.currentStimulus.pairIndex);
+                    this.data.preCritical.trialTypes.push(this.currentStimulus.matchType);
+                    this.data.preCritical.responses.push(response);
+                    this.data.preCritical.correct.push(correct);
+                    this.data.preCritical.rts.push(rt);
+                } else if (trialType === 'critical') {
+                    this.data.critical.pairIndex = this.currentStimulus.pairIndex;
+                    this.data.critical.trialType = this.currentStimulus.matchType;
+                    this.data.critical.response = response;
+                    this.data.critical.correct = correct;
+                    this.data.critical.rt = rt;
+                } else if (trialType === 'divided') {
+                    this.data.divided.pairIndex = this.currentStimulus.pairIndex;
+                    this.data.divided.trialType = this.currentStimulus.matchType;
+                    this.data.divided.response = response;
+                    this.data.divided.correct = correct;
+                    this.data.divided.rt = rt;
+                }
+
+                setTimeout(() => {
+                    if (trialType === 'practice') {
+                        this.showFeedback(correct);
+                    } else if (trialType === 'preCritical') {
+                        this.nextTrial();
+                    } else if (trialType === 'critical' || trialType === 'divided') {
+                        this.showNoticeQuestion();
+                    }
+                }, 350);
+            },
+
+            // ============================================================
+            // FEEDBACK (practice only)
+            // ============================================================
+            showFeedback(correct) {
+                this.showScreen('feedbackScreen');
+                const fb = document.getElementById('feedbackText');
+                if (correct) {
+                    fb.className = 'feedback-correct';
+                    fb.textContent = 'Correct!';
+                } else {
+                    fb.className = 'feedback-incorrect';
+                    fb.textContent = 'Incorrect. The faces were ' + this.currentStimulus.correctResponse + '.';
+                }
+
+                setTimeout(() => {
+                    this.state.spaceListener = (e) => {
+                        if (e.code === 'Space') {
+                            e.preventDefault();
+                            this.disableSpaceListener();
+                            this.afterFeedback();
+                        }
+                    };
+                    document.addEventListener('keydown', this.state.spaceListener);
+                }, 400);
+            },
+
+            afterFeedback() {
+                this.nextTrial();
+            },
+
+            // ============================================================
+            // IB QUESTIONS
+            // ============================================================
+            showNoticeQuestion() {
+                this.showScreen('yesNoScreen');
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+
+                if (trialType === 'critical') {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "On the last trial, did you notice anything extra that wasn't there on the previous trials?";
+                } else {
+                    document.getElementById('yesNoQuestion').textContent =
+                        "Did you notice an extra object on that trial?";
+                }
+            },
+
+            submitNotice(answer) {
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                if (trialType === 'critical') {
+                    this.data.critical.noticed = answer;
+                } else {
+                    this.data.divided.noticed = answer;
+                }
+                console.log("Noticed:", answer, "Trial:", trialType);
+
+                this.showFaceSelection();
+            },
+
+            // ============================================================
+            // 4AFC FACE IDENTIFICATION — 2 rows: upright / inverted
+            // ============================================================
+            showFaceSelection() {
+                this.showScreen('faceSelectionScreen');
+                this.selectedFace = null;
+
+                const basePath = this.imageConfig.basePath;
+
+                // Build 2 rows: upright faces, then inverted faces
+                const upright = this.imageConfig.afcOptions
+                    .filter(o => !o.inverted)
+                    .map(o => ({ id: o.id, src: basePath + o.file, inverted: false }));
+                const inverted = this.imageConfig.afcOptions
+                    .filter(o => o.inverted)
+                    .map(o => ({ id: o.id, src: basePath + o.file, inverted: true }));
+
+                // Shuffle each row
+                for (const row of [upright, inverted]) {
+                    for (let i = row.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [row[i], row[j]] = [row[j], row[i]];
+                    }
+                }
+
+                // Randomly swap which row goes first
+                const rows = Math.random() < 0.5 ? [upright, inverted] : [inverted, upright];
+
+                const container = document.getElementById('faceChoicesContainer');
+                container.innerHTML = '';
+
+                rows.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.style.cssText = 'display: flex; justify-content: center; gap: 15px; margin: 5px 0; width: 100%;';
+
+                    row.forEach(choice => {
+                        const div = document.createElement('div');
+                        div.className = 'choice-button face-choice';
+                        div.onclick = () => this.selectFace(choice.id, div);
+
+                        const img = document.createElement('img');
+                        img.src = choice.src;
+                        img.alt = 'Face option';
+                        if (choice.inverted) {
+                            img.style.transform = 'scaleY(-1)';
+                        }
+
+                        div.appendChild(img);
+                        rowDiv.appendChild(div);
+                    });
+
+                    container.appendChild(rowDiv);
+                });
+            },
+
+            selectFace(faceId, element) {
+                document.querySelectorAll('.face-choice').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+                this.selectedFace = faceId;
+            },
+
+            submitFaceChoice() {
+                if (!this.selectedFace) {
+                    alert("Please select a face.");
+                    return;
+                }
+
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                if (trialType === 'critical') {
+                    this.data.critical.faceChoice = this.selectedFace;
+                } else {
+                    this.data.divided.faceChoice = this.selectedFace;
+                }
+
+                console.log("Face choice:", this.selectedFace, "Trial:", trialType,
+                            "Correct:", this.selectedFace === this.data.ueoFace);
+
+                this.nextTrial();
+            },
+
+            // ============================================================
+            // TRIAL NAVIGATION
+            // ============================================================
+            nextTrial() {
+                this.state.currentTrial++;
+
+                if (this.state.currentTrial < this.state.trialSequence.length) {
+                    this.showInstructions();
+                } else {
+                    this.computeAccuracy();
+                    this.showVisionQuestions();
+                }
+            },
+
+            computeAccuracy() {
+                if (this.data.practice.correct.length > 0) {
+                    const n = this.data.practice.correct.filter(c => c).length;
+                    this.data.practiceAccuracy = parseFloat(
+                        ((n / this.data.practice.correct.length) * 100).toFixed(2)
+                    );
+                }
+                if (this.data.preCritical.correct.length > 0) {
+                    const n = this.data.preCritical.correct.filter(c => c).length;
+                    this.data.preCriticalAccuracy = parseFloat(
+                        ((n / this.data.preCritical.correct.length) * 100).toFixed(2)
+                    );
+                }
+            },
+
+            // ============================================================
+            // VISION QUESTIONS
+            // ============================================================
+            showVisionQuestions() {
+                this.showScreen('visionScreen');
+                document.getElementById('visionUsePrompt').classList.add('hidden');
+                document.getElementById('visionUseBtns').classList.add('hidden');
+            },
+
+            setVisionNeed(answer) {
+                this.data.visionCorrectionNeed = answer;
+                document.getElementById('visionNeedBtns').innerHTML =
+                    `<p style="color: #555;">Answer: ${answer}</p>`;
+                document.getElementById('visionUsePrompt').classList.remove('hidden');
+                document.getElementById('visionUseBtns').classList.remove('hidden');
+            },
+
+            setVisionUse(answer) {
+                this.data.visionCorrectionUse = answer;
+                console.log("Vision - Need:", this.data.visionCorrectionNeed,
+                            "Use:", this.data.visionCorrectionUse);
+                this.showFinalScreen();
+            },
+
+            showFinalScreen() {
+                this.showScreen('finalScreen');
+            },
+
+            // ============================================================
+            // SUBMIT ALL DATA
+            // ============================================================
+            submitData() {
+                this.timing.endTime = new Date();
+                this.data.endTime = this.formatDate(this.timing.endTime);
+                this.data.duration = Math.round((this.timing.endTime - this.timing.startTime) / 1000);
+
+                const form = document.getElementById('task_data');
+
+                form.study_name.value = this.data.studyName;
+                form.subject_code.value = this.data.subjectCode;
+                form.start_time.value = this.data.startTime;
+                form.end_time.value = this.data.endTime;
+                form.duration.value = this.data.duration;
+
+                form.num_ring_positions.value = this.config.numRingPositions;
+                form.ring_radius.value = this.config.ringRadius;
+                form.face_size.value = this.config.faceSize;
+                form.ueo_size.value = this.config.ueoSize;
+                form.stimulus_duration.value = this.config.stimulusDuration;
+                form.fixation_duration.value = this.config.fixationDuration;
+                form.background_color.value = this.config.backgroundColor;
+
+                form.face_a_expression.value = this.data.faceAExpression;
+                form.face_b_expression.value = this.data.faceBExpression;
+                form.ueo_expression.value = this.data.ueoExpression;
+                form.ueo_face.value = this.data.ueoFace || '';
+                form.ueo_match_type.value = this.data.ueoMatchType;
+
+                // Practice
+                form.practice_pair_indices.value = JSON.stringify(this.data.practice.pairIndices);
+                form.practice_trial_types.value = JSON.stringify(this.data.practice.trialTypes);
+                form.practice_responses.value = JSON.stringify(this.data.practice.responses);
+                form.practice_correct.value = JSON.stringify(this.data.practice.correct);
+                form.practice_rts.value = JSON.stringify(this.data.practice.rts);
+                form.practice_accuracy.value = this.data.practiceAccuracy || '';
+
+                // Pre-critical
+                form.precritical_pair_indices.value = JSON.stringify(this.data.preCritical.pairIndices);
+                form.precritical_trial_types.value = JSON.stringify(this.data.preCritical.trialTypes);
+                form.precritical_responses.value = JSON.stringify(this.data.preCritical.responses);
+                form.precritical_correct.value = JSON.stringify(this.data.preCritical.correct);
+                form.precritical_rts.value = JSON.stringify(this.data.preCritical.rts);
+                form.precritical_accuracy.value = this.data.preCriticalAccuracy || '';
+
+                // Critical
+                form.critical_pair_index.value = this.data.critical.pairIndex ?? '';
+                form.critical_trial_type.value = this.data.critical.trialType || '';
+                form.critical_response.value = this.data.critical.response || '';
+                form.critical_correct.value = this.data.critical.correct ?? '';
+                form.critical_rt.value = this.data.critical.rt ?? '';
+                form.critical_noticed.value = this.data.critical.noticed || '';
+                form.critical_face_choice.value = this.data.critical.faceChoice || '';
+
+                // Divided
+                form.divided_pair_index.value = this.data.divided.pairIndex ?? '';
+                form.divided_trial_type.value = this.data.divided.trialType || '';
+                form.divided_response.value = this.data.divided.response || '';
+                form.divided_correct.value = this.data.divided.correct ?? '';
+                form.divided_rt.value = this.data.divided.rt ?? '';
+                form.divided_noticed.value = this.data.divided.noticed || '';
+                form.divided_face_choice.value = this.data.divided.faceChoice || '';
+
+                // Vision
+                form.vision_correction_need.value = this.data.visionCorrectionNeed || '';
+                form.vision_correction_use.value = this.data.visionCorrectionUse || '';
+
+                console.log("=== FINAL DATA ===");
+                console.log("Study:", this.data.studyName);
+                console.log("Subject:", this.data.subjectCode);
+                console.log("Duration:", this.data.duration, "seconds");
+                console.log("Practice accuracy:", this.data.practiceAccuracy);
+                console.log("PreCritical accuracy:", this.data.preCriticalAccuracy);
+                console.log("UEO match:", this.data.ueoMatchType,
+                            "face:", this.data.ueoFace,
+                            "expression:", this.data.ueoExpression);
+                console.log("Critical - noticed:", this.data.critical.noticed,
+                            "choice:", this.data.critical.faceChoice,
+                            "task correct:", this.data.critical.correct);
+                console.log("Divided  - noticed:", this.data.divided.noticed,
+                            "choice:", this.data.divided.faceChoice,
+                            "task correct:", this.data.divided.correct);
+                console.log("==================");
+
+                const formData = new FormData(form);
+                const dataObject = {};
+                formData.forEach((value, key) => { dataObject[key] = value; });
+
+                const json = JSON.stringify(dataObject);
+                console.log("JSON being sent:", json);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "data.php", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log("Server response:", xhr.responseText);
+                        if (xhr.status === 200) {
+                            window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1QBLCRQ';
+                            console.log("Data submitted successfully.");
+                        } else {
+                            console.error("Error submitting data");
+                        }
+                    }
+                };
+                xhr.send(json);
+            }
+        };
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        window.onload = function() {
+            console.log("Page loaded - Face Same/Different IB Experiment");
+
+            experiment.loadImages().then(() => {
+                console.log("All images loaded successfully.");
+                experiment.init();
+                experiment.showInstructions();
+            }).catch((err) => {
+                console.error("Image loading error:", err);
+                document.getElementById('loadingScreen').innerHTML =
+                    `<p style="color: red; font-size: 18px;">Error loading images: ${err}</p>
+                     <p>Please ensure face images are in the <strong>Assets/</strong> folder.</p>`;
+            });
+        };
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inattentional Blindness Experiment - Bird vs Tool UEO</title>
+    <title>Inattentional Blindness Experiment - Object Category UEO</title>
     <style>
         /* STYLING */
         body {
@@ -213,6 +213,8 @@
             <input type="hidden" name="trial3_object_choice" value="">
             <input type="hidden" name="trial3_choice_correct_category" value="">
             <input type="hidden" name="trial3_choice_correct_exemplar" value="">
+            <input type="hidden" name="trial3_choice_positions" value="">
+            <input type="hidden" name="trial3_selected_position" value="">
             <!-- Trial 4 (Divided) -->
             <input type="hidden" name="trial4_bounces" value="">
             <input type="hidden" name="trial4_count" value="">
@@ -221,6 +223,8 @@
             <input type="hidden" name="trial4_object_choice" value="">
             <input type="hidden" name="trial4_choice_correct_category" value="">
             <input type="hidden" name="trial4_choice_correct_exemplar" value="">
+            <input type="hidden" name="trial4_choice_positions" value="">
+            <input type="hidden" name="trial4_selected_position" value="">
             <!-- Accuracy summary -->
             <input type="hidden" name="practice_accuracy_avg" value="">
             <!-- Playback questions -->
@@ -407,7 +411,12 @@
                     noticed: [null, null],       // [critical, divided]
                     objectChoice: [null, null],  // [critical, divided]: stored as key like 'bird_study'
                     choiceCorrectCategory: [null, null],
-                    choiceCorrectExemplar: [null, null]
+                    choiceCorrectExemplar: [null, null],
+                    // Map of {key: position_index} where position 0=top-left, 1=top-right,
+                    // 2=bottom-left, 3=bottom-right in the 2x2 grid.
+                    choicePositions: [null, null],
+                    // Position (0-3) of the option the participant selected.
+                    selectedPosition: [null, null]
                 },
                 practiceAccuracyAvg: null,
                 runSmoothly: null,
@@ -644,7 +653,7 @@
                     message = `<p>In this task, 8 photos will appear inside a gray rectangle.
                               After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
                               <p>There are two kinds of objects on the screen: <strong>birds</strong> and <strong>tape rolls</strong>.
-                              Your job is to pay attention to the <strong>${attendedLabel}</strong> shown below and count the total number of times any
+                              Your task is to pay attention to the <strong>${attendedLabel}</strong> shown below and count the total number of times any
                               ${attendedLabel} bounces off the sides of the rectangle. <strong>Ignore the ${ignoredLabel}.</strong></p>
                               ${targetPreviewHTML}
                               <p>You will be asked to report your total count.</p>
@@ -999,14 +1008,22 @@
                     [choices[i], choices[j]] = [choices[j], choices[i]];
                 }
 
+                // After shuffle, record which key landed at which grid position.
+                // Grid is 2x2: index 0 = top-left, 1 = top-right, 2 = bottom-left, 3 = bottom-right.
+                const positionMap = {};
+                choices.forEach((c, idx) => { positionMap[c.key] = idx; });
+                const trialType = this.state.trialSequence[this.state.currentTrial];
+                const responseIndex = trialType === 'critical' ? 0 : 1;
+                this.data.responses.choicePositions[responseIndex] = positionMap;
+
                 // Build buttons
                 const container = document.getElementById('objectChoicesContainer');
                 container.innerHTML = '';
 
-                choices.forEach(choice => {
+                choices.forEach((choice, idx) => {
                     const div = document.createElement('div');
                     div.className = 'choice-button object-choice';
-                    div.onclick = () => this.selectObject(choice.key, div);
+                    div.onclick = () => this.selectObject(choice.key, idx, div);
 
                     const img = document.createElement('img');
                     img.src = choice.src;
@@ -1017,12 +1034,13 @@
                 });
             },
 
-            selectObject(key, element) {
+            selectObject(key, positionIdx, element) {
                 document.querySelectorAll('.object-choice').forEach(el => {
                     el.classList.remove('selected');
                 });
                 element.classList.add('selected');
                 this.selectedKey = key;
+                this.selectedPosition = positionIdx;
             },
 
             submitObjectChoice() {
@@ -1034,6 +1052,7 @@
                 const trialType = this.state.trialSequence[this.state.currentTrial];
                 const responseIndex = trialType === 'critical' ? 0 : 1;
                 this.data.responses.objectChoice[responseIndex] = this.selectedKey;
+                this.data.responses.selectedPosition[responseIndex] = this.selectedPosition;
 
                 // Diagnostics:
                 //   correct_category: picked something in the UEO's category (regardless of study/novel)
@@ -1174,6 +1193,12 @@
                 form.trial3_choice_correct_exemplar.value =
                     this.data.responses.choiceCorrectExemplar[0] === null ? '' :
                     String(this.data.responses.choiceCorrectExemplar[0]);
+                form.trial3_choice_positions.value =
+                    this.data.responses.choicePositions[0] === null ? '' :
+                    JSON.stringify(this.data.responses.choicePositions[0]);
+                form.trial3_selected_position.value =
+                    this.data.responses.selectedPosition[0] === null ? '' :
+                    String(this.data.responses.selectedPosition[0]);
 
                 // Trial 4 (Divided)
                 form.trial4_bounces.value = this.data.trials.bounces[3] || '';
@@ -1187,6 +1212,12 @@
                 form.trial4_choice_correct_exemplar.value =
                     this.data.responses.choiceCorrectExemplar[1] === null ? '' :
                     String(this.data.responses.choiceCorrectExemplar[1]);
+                form.trial4_choice_positions.value =
+                    this.data.responses.choicePositions[1] === null ? '' :
+                    JSON.stringify(this.data.responses.choicePositions[1]);
+                form.trial4_selected_position.value =
+                    this.data.responses.selectedPosition[1] === null ? '' :
+                    String(this.data.responses.selectedPosition[1]);
 
                 // Accuracy summary
                 form.practice_accuracy_avg.value = this.data.practiceAccuracyAvg || '';

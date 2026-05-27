@@ -133,8 +133,10 @@
         }
 
         .target-preview img {
-            width: 96px;
-            height: 96px;
+            max-width: 120px;
+            max-height: 96px;
+            width: auto;
+            height: auto;
             border: 2px solid #333;
             border-radius: 5px;
         }
@@ -356,7 +358,9 @@
                 unexpectedObjectStart: 5000, // UEO appears at 5 s
                 canvasWidth: 666,
                 canvasHeight: 546,
-                objectSize: 96,
+                // Image sizes are NOT uniform — each PNG is tight-cropped
+                // to its object silhouette, so collision uses the image's
+                // own width/height. Set max longest dim during preprocessing.
                 backgroundColor: '#797979',
 
                 // Motion variation settings (matched to face experiment)
@@ -494,10 +498,16 @@
                 console.log("Experiment initialized - Bird/Tool UEO");
             },
 
-            // Generate random starting positions for ignored objects
+            // Generate random starting positions for ignored objects.
+            // Uses the ignored image's own width/height (no fixed objectSize).
             generateDistractorPositions() {
                 this.distractors = [];
-                const margin = this.config.objectSize;
+                const ignoredImg = this.getIgnoredImage();
+                const w = ignoredImg.naturalWidth;
+                const h = ignoredImg.naturalHeight;
+                const halfW = w / 2;
+                const halfH = h / 2;
+                const maxDim = Math.max(w, h);
                 const midY = this.config.canvasHeight / 2;
                 const buffer = this.config.ignoredMidlineBuffer;
 
@@ -510,25 +520,26 @@
                     const maxAttempts = 100;
 
                     do {
-                        x = Math.random() * (this.config.canvasWidth - margin * 2) + margin;
+                        x = Math.random() * (this.config.canvasWidth - 2 * halfW) + halfW;
                         if (zones[i] === 'upper') {
-                            y = Math.random() * (midY - buffer - margin) + margin;
+                            y = Math.random() * (midY - buffer - halfH) + halfH;
                         } else {
-                            y = Math.random() * (this.config.canvasHeight - margin - midY - buffer) + midY + buffer;
+                            y = Math.random() * (this.config.canvasHeight - halfH - midY - buffer) + midY + buffer;
                         }
                         attempts++;
                     } while (
                         this.distractors.some(d => {
                             const dx = d.x - x;
                             const dy = d.y - y;
-                            return Math.sqrt(dx * dx + dy * dy) < this.config.objectSize * 1.5;
+                            return Math.sqrt(dx * dx + dy * dy) < maxDim * 1.5;
                         }) && attempts < maxAttempts
                     );
 
                     this.distractors.push({
                         startX: x,
                         startY: y,
-                        size: this.config.objectSize
+                        width: w,
+                        height: h
                     });
                 }
             },
@@ -637,8 +648,8 @@
                                    + this.imageConfig[this.state.attendedCategory + '_study'];
                 // Labels avoid the word "category" — name items directly so
                 // participants form their own category boundaries.
-                const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'tape';
-                const ignoredLabel  = this.state.attendedCategory === 'bird' ? 'tape' : 'bird';
+                const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'hammer';
+                const ignoredLabel  = this.state.attendedCategory === 'bird' ? 'hammer' : 'bird';
 
                 const targetPreviewHTML = `
                     <div style="margin: 15px 0;">
@@ -652,7 +663,7 @@
                 if (this.state.currentTrial === 0) {
                     message = `<p>In this task, 8 photos will appear inside a gray rectangle.
                               After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
-                              <p>There are two kinds of objects on the screen: <strong>birds</strong> and <strong>tape rolls</strong>.
+                              <p>There are two kinds of objects on the screen: <strong>birds</strong> and <strong>hammers</strong>.
                               Your task is to pay attention to the <strong>${attendedLabel}</strong> shown below and count the total number of times any
                               ${attendedLabel} bounces off the sides of the rectangle. <strong>Ignore the ${ignoredLabel}.</strong></p>
                               ${targetPreviewHTML}
@@ -725,20 +736,25 @@
             // Create attended-category objects
             createObjects() {
                 this.objects = [];
+                const attendedImg = this.getAttendedImage();
+                const w = attendedImg.naturalWidth;
+                const h = attendedImg.naturalHeight;
+                const halfW = w / 2;
+                const halfH = h / 2;
 
                 for (let i = 0; i < this.config.numAttended; i++) {
-                    const margin = this.config.objectSize;
                     const speed = this.getRandomSpeed();
                     const xDir = Math.random() < 0.5 ? 1 : -1;
                     const yDir = Math.random() < 0.5 ? 1 : -1;
                     const initialInterval = this.getRandomPerturbationInterval();
 
                     this.objects.push({
-                        x: Math.random() * (this.config.canvasWidth - margin * 2) + margin,
-                        y: Math.random() * (this.config.canvasHeight - margin * 2) + margin,
+                        x: Math.random() * (this.config.canvasWidth - 2 * halfW) + halfW,
+                        y: Math.random() * (this.config.canvasHeight - 2 * halfH) + halfH,
                         vx: speed * xDir,
                         vy: speed * yDir,
-                        size: this.config.objectSize,
+                        width: w,
+                        height: h,
                         bounces: 0,
                         timeSincePerturbation: Math.random() * initialInterval,
                         nextPerturbationAt: initialInterval
@@ -755,8 +771,13 @@
                 }
                 // For divided, reuse same direction as critical
 
+                const ueoImg = this.getUEOImage();
+                const w = ueoImg.naturalWidth;
+                const h = ueoImg.naturalHeight;
+
                 const direction = this.data.unexpectedObjectDirection === 'LeftToRight' ? 1 : -1;
-                const startX = direction === 1 ? -this.config.objectSize : this.config.canvasWidth + this.config.objectSize;
+                // Start fully offscreen on the appropriate side
+                const startX = direction === 1 ? -w : this.config.canvasWidth + w;
                 const speed = this.config.unexpectedObjectSpeed;
 
                 this.unexpectedObject = {
@@ -764,7 +785,8 @@
                     y: this.config.canvasHeight / 2,
                     vx: speed * direction,
                     vy: 0,
-                    size: this.config.objectSize,
+                    width: w,
+                    height: h,
                     isUnexpected: true
                 };
 
@@ -772,6 +794,7 @@
                             "Match type:", this.state.ueoMatchType,
                             "Category:", this.data.ueoCategory,
                             "Image:", this.data.ueoImage,
+                            "Dimensions:", w + "x" + h,
                             "Direction:", this.data.unexpectedObjectDirection);
             },
 
@@ -822,15 +845,16 @@
                 obj.x += obj.vx * timeMultiplier;
                 obj.y += obj.vy * timeMultiplier;
 
-                const halfSize = obj.size / 2;
+                const halfW = obj.width / 2;
+                const halfH = obj.height / 2;
                 let bouncedX = false;
                 let bouncedY = false;
 
                 // Left/right walls
-                if (obj.x - halfSize <= 0 || obj.x + halfSize >= this.config.canvasWidth) {
+                if (obj.x - halfW <= 0 || obj.x + halfW >= this.config.canvasWidth) {
                     obj.vx *= -1;
-                    if (obj.x - halfSize <= 0) obj.x = halfSize;
-                    if (obj.x + halfSize >= this.config.canvasWidth) obj.x = this.config.canvasWidth - halfSize;
+                    if (obj.x - halfW <= 0) obj.x = halfW;
+                    if (obj.x + halfW >= this.config.canvasWidth) obj.x = this.config.canvasWidth - halfW;
 
                     const angleVariation = this.getRandomAngle(this.config.bounceAngleVariation);
                     const rotated = this.rotateVelocity(obj.vx, obj.vy, angleVariation);
@@ -846,10 +870,10 @@
                 }
 
                 // Top/bottom walls
-                if (obj.y - halfSize <= 0 || obj.y + halfSize >= this.config.canvasHeight) {
+                if (obj.y - halfH <= 0 || obj.y + halfH >= this.config.canvasHeight) {
                     obj.vy *= -1;
-                    if (obj.y - halfSize <= 0) obj.y = halfSize;
-                    if (obj.y + halfSize >= this.config.canvasHeight) obj.y = this.config.canvasHeight - halfSize;
+                    if (obj.y - halfH <= 0) obj.y = halfH;
+                    if (obj.y + halfH >= this.config.canvasHeight) obj.y = this.config.canvasHeight - halfH;
 
                     if (!bouncedX) {
                         const angleVariation = this.getRandomAngle(this.config.bounceAngleVariation);
@@ -888,7 +912,7 @@
                 if (this.unexpectedObject) {
                     this.unexpectedObject.x += this.unexpectedObject.vx * timeMultiplier;
 
-                    const offScreenMargin = this.config.objectSize;
+                    const offScreenMargin = this.unexpectedObject.width;
                     if (this.unexpectedObject.vx > 0 && this.unexpectedObject.x > this.config.canvasWidth + offScreenMargin) {
                         this.unexpectedObject = null;
                     } else if (this.unexpectedObject.vx < 0 && this.unexpectedObject.x < -offScreenMargin) {
@@ -902,13 +926,14 @@
             // ============================================================
             drawObject(obj, image) {
                 if (!image) return;
-                const halfSize = obj.size / 2;
+                const halfW = obj.width / 2;
+                const halfH = obj.height / 2;
                 this.ctx.drawImage(
                     image,
-                    obj.x - halfSize,
-                    obj.y - halfSize,
-                    obj.size,
-                    obj.size
+                    obj.x - halfW,
+                    obj.y - halfH,
+                    obj.width,
+                    obj.height
                 );
             },
 
@@ -932,7 +957,7 @@
 
             showResponseInput() {
                 this.showScreen('responseScreen');
-                const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'tape';
+                const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'hammer';
                 document.getElementById('responsePrompt').textContent =
                     `In the box below, please enter the total number of times any ${attendedLabel} bounced off the edges of the rectangle.`;
                 document.getElementById('countInput').value = '';

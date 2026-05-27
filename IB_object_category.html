@@ -358,9 +358,13 @@
                 unexpectedObjectStart: 5000, // UEO appears at 5 s
                 canvasWidth: 666,
                 canvasHeight: 546,
-                // Image sizes are NOT uniform — each PNG is tight-cropped
-                // to its object silhouette, so collision uses the image's
-                // own width/height. Set max longest dim during preprocessing.
+                // Source PNGs are stored at high resolution (e.g., ~400 max-dim)
+                // so the 4-AFC can display them sharply at ~120px. On canvas,
+                // each object is rendered at displayMaxDim (longest side),
+                // preserving its source aspect ratio. ctx.drawImage scales the
+                // high-res source down to displayMaxDim — source resolution
+                // does NOT determine canvas display size.
+                displayMaxDim: 100,
                 backgroundColor: '#797979',
 
                 // Motion variation settings (matched to face experiment)
@@ -499,12 +503,14 @@
             },
 
             // Generate random starting positions for ignored objects.
-            // Uses the ignored image's own width/height (no fixed objectSize).
+            // Uses the ignored image's display dimensions (high-res source
+            // scaled down to displayMaxDim).
             generateDistractorPositions() {
                 this.distractors = [];
                 const ignoredImg = this.getIgnoredImage();
-                const w = ignoredImg.naturalWidth;
-                const h = ignoredImg.naturalHeight;
+                const dims = this.getDisplayDims(ignoredImg);
+                const w = dims.width;
+                const h = dims.height;
                 const halfW = w / 2;
                 const halfH = h / 2;
                 const maxDim = Math.max(w, h);
@@ -579,6 +585,21 @@
             // Get UEO image (same as attended or ignored, by match type)
             getUEOImage() {
                 return this.images[this.data.ueoCategory + '_study'];
+            },
+
+            // Scale source image to displayMaxDim on its longest side,
+            // preserving aspect ratio. Used everywhere object size needs
+            // to be derived (positions, collisions, drawing). Decouples
+            // source PNG resolution from on-screen rendering size.
+            getDisplayDims(image) {
+                const target = this.config.displayMaxDim;
+                const w = image.naturalWidth;
+                const h = image.naturalHeight;
+                const scale = target / Math.max(w, h);
+                return {
+                    width: Math.round(w * scale),
+                    height: Math.round(h * scale)
+                };
             },
 
             getRandomSpeed() {
@@ -737,8 +758,9 @@
             createObjects() {
                 this.objects = [];
                 const attendedImg = this.getAttendedImage();
-                const w = attendedImg.naturalWidth;
-                const h = attendedImg.naturalHeight;
+                const dims = this.getDisplayDims(attendedImg);
+                const w = dims.width;
+                const h = dims.height;
                 const halfW = w / 2;
                 const halfH = h / 2;
 
@@ -772,8 +794,9 @@
                 // For divided, reuse same direction as critical
 
                 const ueoImg = this.getUEOImage();
-                const w = ueoImg.naturalWidth;
-                const h = ueoImg.naturalHeight;
+                const dims = this.getDisplayDims(ueoImg);
+                const w = dims.width;
+                const h = dims.height;
 
                 const direction = this.data.unexpectedObjectDirection === 'LeftToRight' ? 1 : -1;
                 // Start fully offscreen on the appropriate side
@@ -1019,7 +1042,9 @@
 
                 const basePath = this.imageConfig.basePath;
 
-                // Build array of 4 choices (always the same 4)
+                // 4-AFC uses the same PNG files as the canvas. Source PNGs are
+                // high-resolution; CSS scales them down to the 120px choice box
+                // (downscaling is always sharp).
                 const choices = [
                     { key: 'bird_study', src: basePath + this.imageConfig.bird_study },
                     { key: 'bird_novel', src: basePath + this.imageConfig.bird_novel },

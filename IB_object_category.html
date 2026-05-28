@@ -137,8 +137,6 @@
             max-height: 96px;
             width: auto;
             height: auto;
-            border: 2px solid #333;
-            border-radius: 5px;
         }
 
         .yesno-btn, .playback-btn {
@@ -194,6 +192,7 @@
             <input type="hidden" name="speed_max" value="">
             <input type="hidden" name="unexpected_object_speed" value="">
             <input type="hidden" name="unexpected_object_direction" value="">
+            <input type="hidden" name="pre_pause_duration" value="">
             <!-- Layout info -->
             <input type="hidden" name="num_attended" value="">
             <input type="hidden" name="num_ignored" value="">
@@ -203,14 +202,20 @@
             <input type="hidden" name="trial1_bounces" value="">
             <input type="hidden" name="trial1_count" value="">
             <input type="hidden" name="trial1_accuracy" value="">
+            <input type="hidden" name="trial1_attended_flipped" value="">
+            <input type="hidden" name="trial1_ignored_flipped" value="">
             <!-- Trial 2 (Practice 2) -->
             <input type="hidden" name="trial2_bounces" value="">
             <input type="hidden" name="trial2_count" value="">
             <input type="hidden" name="trial2_accuracy" value="">
+            <input type="hidden" name="trial2_attended_flipped" value="">
+            <input type="hidden" name="trial2_ignored_flipped" value="">
             <!-- Trial 3 (Critical) -->
             <input type="hidden" name="trial3_bounces" value="">
             <input type="hidden" name="trial3_count" value="">
             <input type="hidden" name="trial3_accuracy" value="">
+            <input type="hidden" name="trial3_attended_flipped" value="">
+            <input type="hidden" name="trial3_ignored_flipped" value="">
             <input type="hidden" name="trial3_noticed" value="">
             <input type="hidden" name="trial3_object_choice" value="">
             <input type="hidden" name="trial3_choice_correct_category" value="">
@@ -221,6 +226,8 @@
             <input type="hidden" name="trial4_bounces" value="">
             <input type="hidden" name="trial4_count" value="">
             <input type="hidden" name="trial4_accuracy" value="">
+            <input type="hidden" name="trial4_attended_flipped" value="">
+            <input type="hidden" name="trial4_ignored_flipped" value="">
             <input type="hidden" name="trial4_noticed" value="">
             <input type="hidden" name="trial4_object_choice" value="">
             <input type="hidden" name="trial4_choice_correct_category" value="">
@@ -354,8 +361,10 @@
                 numAttended: 4,
                 numIgnored: 4,
                 ignoredMidlineBuffer: 50,
-                trialDuration: 19000,        // 19 seconds
-                unexpectedObjectStart: 5000, // UEO appears at 5 s
+                trialDuration: 19000,        // 19 seconds of motion
+                prePauseDuration: 2000,      // objects shown stationary for 2 s
+                                              // before motion begins
+                unexpectedObjectStart: 5000, // UEO appears 5 s into the moving phase
                 canvasWidth: 666,
                 canvasHeight: 546,
                 // Source PNGs are stored at high resolution (e.g., ~400 max-dim)
@@ -413,7 +422,12 @@
                 trials: {
                     bounces: [],
                     counts: [],
-                    accuracy: []
+                    accuracy: [],
+                    // Per-trial: which item indices (0..3) were horizontally
+                    // flipped. Logged once per trial after createObjects /
+                    // distractor init.
+                    attendedFlipped: [],
+                    ignoredFlipped: []
                 },
                 responses: {
                     noticed: [null, null],       // [critical, divided]
@@ -684,7 +698,7 @@
                 if (this.state.currentTrial === 0) {
                     message = `<p>In this task, 8 photos will appear inside a gray rectangle.
                               After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
-                              <p>There are two kinds of objects on the screen: <strong>birds</strong> and <strong>hammers</strong>.
+                              <p>There are two kinds of objects on the screen: <strong>4 birds</strong> and <strong>4 hammers</strong>.
                               Your task is to pay attention to the <strong>${attendedLabel}</strong> shown below and count the total number of times any
                               ${attendedLabel} bounces off the sides of the rectangle. <strong>Ignore the ${ignoredLabel}.</strong></p>
                               ${targetPreviewHTML}
@@ -722,10 +736,17 @@
                 this.showScreen('canvasScreen');
                 this.createObjects();
                 this.state.isRunning = true;
+                this.state.isPaused = true;  // stationary phase
                 this.lastFrameTime = null;
 
-                // Initialize ignored-category items as moving distractors
-                this.distractors.forEach(d => {
+                // Initialize ignored-category items (motion params set now,
+                // but updateObject skips position updates while paused).
+                // Flip half (2 of 4) of distractors horizontally.
+                const ignoredFlipSet = this.chooseFlipIndices(this.distractors.length,
+                                                               Math.floor(this.distractors.length / 2));
+                this.ignoredFlippedIndices = Array.from(ignoredFlipSet).sort((a,b) => a-b);
+
+                this.distractors.forEach((d, i) => {
                     d.x = d.startX;
                     d.y = d.startY;
                     const speed = this.getRandomSpeed();
@@ -735,26 +756,46 @@
                     d.vy = speed * yDir;
                     d.bounces = 0;
                     d.isDistractor = true;
+                    d.flipped = ignoredFlipSet.has(i);
                     const initialInterval = this.getRandomPerturbationInterval();
                     d.timeSincePerturbation = Math.random() * initialInterval;
                     d.nextPerturbationAt = initialInterval;
                 });
 
-                // Set up UEO for critical/divided
-                if (trialType === 'critical' || trialType === 'divided') {
-                    setTimeout(() => {
-                        this.addUnexpectedObject();
-                    }, this.config.unexpectedObjectStart);
-                }
-
+                // Start render loop immediately (draws stationary frame during pause)
                 requestAnimationFrame((time) => this.animate(time));
 
+                // After pre-pause: unfreeze motion, schedule UEO + end-of-trial
                 setTimeout(() => {
-                    this.endTrial();
-                }, this.config.trialDuration);
+                    this.state.isPaused = false;
+                    this.lastFrameTime = null;  // reset so first moving frame
+                                                 // doesn't apply a huge deltaTime
+
+                    if (trialType === 'critical' || trialType === 'divided') {
+                        setTimeout(() => {
+                            this.addUnexpectedObject();
+                        }, this.config.unexpectedObjectStart);
+                    }
+
+                    setTimeout(() => {
+                        this.endTrial();
+                    }, this.config.trialDuration);
+                }, this.config.prePauseDuration);
             },
 
             // Create attended-category objects
+            // Pick a subset of indices to flip horizontally.
+            // Returns a Set of indices (size = numToFlip).
+            chooseFlipIndices(numItems, numToFlip) {
+                const indices = Array.from({length: numItems}, (_, i) => i);
+                // Fisher-Yates partial shuffle
+                for (let i = 0; i < numToFlip; i++) {
+                    const j = i + Math.floor(Math.random() * (numItems - i));
+                    [indices[i], indices[j]] = [indices[j], indices[i]];
+                }
+                return new Set(indices.slice(0, numToFlip));
+            },
+
             createObjects() {
                 this.objects = [];
                 const attendedImg = this.getAttendedImage();
@@ -763,6 +804,11 @@
                 const h = dims.height;
                 const halfW = w / 2;
                 const halfH = h / 2;
+
+                // Flip half (2 of 4) of the attended items horizontally.
+                const flipSet = this.chooseFlipIndices(this.config.numAttended,
+                                                       Math.floor(this.config.numAttended / 2));
+                this.attendedFlippedIndices = Array.from(flipSet).sort((a,b) => a-b);
 
                 for (let i = 0; i < this.config.numAttended; i++) {
                     const speed = this.getRandomSpeed();
@@ -777,6 +823,7 @@
                         vy: speed * yDir,
                         width: w,
                         height: h,
+                        flipped: flipSet.has(i),
                         bounces: 0,
                         timeSincePerturbation: Math.random() * initialInterval,
                         nextPerturbationAt: initialInterval
@@ -810,6 +857,7 @@
                     vy: 0,
                     width: w,
                     height: h,
+                    flipped: false,    // UEO is the canonical (non-flipped) exemplar
                     isUnexpected: true
                 };
 
@@ -835,6 +883,7 @@
 
                 const targetFrameTime = 1000 / 60;
                 const timeMultiplier = deltaTime / targetFrameTime;
+                const paused = this.state.isPaused;
 
                 // Clear canvas
                 this.ctx.fillStyle = this.config.backgroundColor;
@@ -842,11 +891,11 @@
 
                 // Draw ignored-category objects FIRST (background)
                 this.distractors.forEach(d => {
-                    this.updateObject(d, timeMultiplier, deltaTime);
+                    if (!paused) this.updateObject(d, timeMultiplier, deltaTime);
                     this.drawObject(d, this.getIgnoredImage());
                 });
 
-                // Draw UEO SECOND (middle layer)
+                // Draw UEO SECOND (middle layer) — UEO only exists in moving phase
                 if (this.unexpectedObject) {
                     this.updateUnexpectedObject(timeMultiplier);
                 }
@@ -856,7 +905,7 @@
 
                 // Draw attended-category objects LAST (top)
                 this.objects.forEach(obj => {
-                    this.updateObject(obj, timeMultiplier, deltaTime);
+                    if (!paused) this.updateObject(obj, timeMultiplier, deltaTime);
                     this.drawObject(obj, this.getAttendedImage());
                 });
 
@@ -951,13 +1000,22 @@
                 if (!image) return;
                 const halfW = obj.width / 2;
                 const halfH = obj.height / 2;
-                this.ctx.drawImage(
-                    image,
-                    obj.x - halfW,
-                    obj.y - halfH,
-                    obj.width,
-                    obj.height
-                );
+                if (obj.flipped) {
+                    // Mirror horizontally around the object's center.
+                    this.ctx.save();
+                    this.ctx.translate(obj.x, obj.y);
+                    this.ctx.scale(-1, 1);
+                    this.ctx.drawImage(image, -halfW, -halfH, obj.width, obj.height);
+                    this.ctx.restore();
+                } else {
+                    this.ctx.drawImage(
+                        image,
+                        obj.x - halfW,
+                        obj.y - halfH,
+                        obj.width,
+                        obj.height
+                    );
+                }
             },
 
             // ============================================================
@@ -973,7 +1031,12 @@
                 });
 
                 this.data.trials.bounces.push(totalBounces);
-                console.log("Trial", this.state.currentTrial + 1, "- Actual bounces:", totalBounces);
+                this.data.trials.attendedFlipped.push(this.attendedFlippedIndices || []);
+                this.data.trials.ignoredFlipped.push(this.ignoredFlippedIndices || []);
+                console.log("Trial", this.state.currentTrial + 1,
+                            "- Bounces:", totalBounces,
+                            "- Attended flipped idx:", this.attendedFlippedIndices,
+                            "- Ignored flipped idx:", this.ignoredFlippedIndices);
 
                 this.showResponseInput();
             },
@@ -1212,6 +1275,7 @@
                 form.speed_max.value = this.config.speedMax;
                 form.unexpected_object_speed.value = this.config.unexpectedObjectSpeed;
                 form.unexpected_object_direction.value = this.data.unexpectedObjectDirection || '';
+                form.pre_pause_duration.value = this.config.prePauseDuration;
 
                 // Layout
                 form.num_attended.value = this.config.numAttended;
@@ -1225,16 +1289,22 @@
                 form.trial1_bounces.value = this.data.trials.bounces[0] || '';
                 form.trial1_count.value = this.data.trials.counts[0] || '';
                 form.trial1_accuracy.value = this.data.trials.accuracy[0] || '';
+                form.trial1_attended_flipped.value = JSON.stringify(this.data.trials.attendedFlipped[0] || []);
+                form.trial1_ignored_flipped.value = JSON.stringify(this.data.trials.ignoredFlipped[0] || []);
 
                 // Trial 2 (Practice 2)
                 form.trial2_bounces.value = this.data.trials.bounces[1] || '';
                 form.trial2_count.value = this.data.trials.counts[1] || '';
                 form.trial2_accuracy.value = this.data.trials.accuracy[1] || '';
+                form.trial2_attended_flipped.value = JSON.stringify(this.data.trials.attendedFlipped[1] || []);
+                form.trial2_ignored_flipped.value = JSON.stringify(this.data.trials.ignoredFlipped[1] || []);
 
                 // Trial 3 (Critical)
                 form.trial3_bounces.value = this.data.trials.bounces[2] || '';
                 form.trial3_count.value = this.data.trials.counts[2] || '';
                 form.trial3_accuracy.value = this.data.trials.accuracy[2] || '';
+                form.trial3_attended_flipped.value = JSON.stringify(this.data.trials.attendedFlipped[2] || []);
+                form.trial3_ignored_flipped.value = JSON.stringify(this.data.trials.ignoredFlipped[2] || []);
                 form.trial3_noticed.value = this.data.responses.noticed[0] || '';
                 form.trial3_object_choice.value = this.data.responses.objectChoice[0] || '';
                 form.trial3_choice_correct_category.value =
@@ -1254,6 +1324,8 @@
                 form.trial4_bounces.value = this.data.trials.bounces[3] || '';
                 form.trial4_count.value = this.data.trials.counts[3] || '';
                 form.trial4_accuracy.value = this.data.trials.accuracy[3] || '';
+                form.trial4_attended_flipped.value = JSON.stringify(this.data.trials.attendedFlipped[3] || []);
+                form.trial4_ignored_flipped.value = JSON.stringify(this.data.trials.ignoredFlipped[3] || []);
                 form.trial4_noticed.value = this.data.responses.noticed[1] || '';
                 form.trial4_object_choice.value = this.data.responses.objectChoice[1] || '';
                 form.trial4_choice_correct_category.value =

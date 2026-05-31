@@ -126,13 +126,7 @@
             margin: 20px 0;
         }
 
-        .target-preview {
-            display: inline-block;
-            margin: 10px;
-            text-align: center;
-        }
-
-        .target-preview img {
+        .target-preview-img {
             max-width: 120px;
             max-height: 96px;
             width: auto;
@@ -362,7 +356,7 @@
                 numIgnored: 4,
                 ignoredMidlineBuffer: 50,
                 trialDuration: 19000,        // 19 seconds of motion
-                prePauseDuration: 2000,      // objects shown stationary for 2 s
+                prePauseDuration: 2500,      // objects shown stationary for 2.5 s
                                               // before motion begins
                 unexpectedObjectStart: 5000, // UEO appears 5 s into the moving phase
                 canvasWidth: 666,
@@ -684,14 +678,17 @@
                 // Labels avoid the word "category" — name items directly so
                 // participants form their own category boundaries.
                 const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'hammer';
+                const attendedPlural = attendedLabel + 's';
                 const ignoredLabel  = this.state.attendedCategory === 'bird' ? 'hammer' : 'bird';
 
+                // Show both orientations: original + horizontally mirrored.
+                // Half of attended items face each direction during the trial,
+                // so both are part of the to-be-attended set.
                 const targetPreviewHTML = `
-                    <div style="margin: 15px 0;">
-                        <div class="target-preview">
-                            <img src="${attendedSrc}" alt="Target ${attendedLabel}">
-                            <p>Target ${attendedLabel}</p>
-                        </div>
+                    <div style="margin: 15px 0; display: flex; justify-content: center; gap: 30px; align-items: center;">
+                        <img class="target-preview-img" src="${attendedSrc}" alt="${attendedLabel}">
+                        <img class="target-preview-img" src="${attendedSrc}" alt="${attendedLabel} (mirrored)"
+                             style="transform: scaleX(-1);">
                     </div>`;
 
                 let message = "";
@@ -699,9 +696,10 @@
                     message = `<p>In this task, 8 photos will appear inside a gray rectangle.
                               After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
                               <p>There are two kinds of objects on the screen: <strong>4 birds</strong> and <strong>4 hammers</strong>.
-                              Your task is to pay attention to the <strong>${attendedLabel}</strong> shown below and count the total number of times any
-                              ${attendedLabel} bounces off the sides of the rectangle. <strong>Ignore the ${ignoredLabel}.</strong></p>
+                              Your task is to pay attention to the <strong>${attendedPlural}</strong> — they look like this:</p>
                               ${targetPreviewHTML}
+                              <p>Count the total number of times any ${attendedLabel} bounces off the sides of the rectangle.
+                              <strong>Ignore the ${ignoredLabel}.</strong></p>
                               <p>You will be asked to report your total count.</p>
                               <br><button onclick="experiment.startTrial()">Click to begin</button>`;
                 } else if (trialType === 'practice') {

@@ -693,13 +693,12 @@
 
                 let message = "";
                 if (this.state.currentTrial === 0) {
-                    message = `<p>In this task, 8 photos will appear inside a gray rectangle.
-                              After a moment, they will begin moving and bouncing off the sides of the rectangle.</p>
-                              <p>There are two kinds of objects on the screen: <strong>4 birds</strong> and <strong>4 hammers</strong>.
-                              Your task is to pay attention to the <strong>${attendedPlural}</strong> — they look like this:</p>
+                    message = `<p>In this task, 8 objects will appear inside a gray rectangle. Four of the objects will be birds and 4 will be hammers.
+                              After a moment, all 8 objects will begin moving and bouncing off the sides of the rectangle.</p>
+                              <p>Your task is to pay attention to the <strong>${attendedPlural}</strong> — they look like this:</p>
                               ${targetPreviewHTML}
                               <p>Count the total number of times any ${attendedLabel} bounces off the sides of the rectangle.
-                              <strong>Ignore the ${ignoredLabel}.</strong></p>
+                              <strong>Ignore the ${ignoredLabel}s.</strong></p>
                               <p>You will be asked to report your total count.</p>
                               <br><button onclick="experiment.startTrial()">Click to begin</button>`;
                 } else if (trialType === 'practice') {
@@ -1075,7 +1074,7 @@
 
                 if (trialType === 'critical') {
                     document.getElementById('yesNoQuestion').textContent =
-                        "Did you notice anything extra during the last counting trial that wasn't there in the previous trials?";
+                        "Did you notice anything extra or different in that last counting trial (anything other than the 8 objects)?";
                 } else {
                     document.getElementById('yesNoQuestion').textContent =
                         "Did you notice an extra object on that trial?";

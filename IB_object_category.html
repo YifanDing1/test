@@ -172,10 +172,10 @@
             <input type="hidden" name="ueo_match_type" value="">
             <input type="hidden" name="ueo_image" value="">
             <!-- Stimulus filenames -->
-            <input type="hidden" name="bird_study_file" value="">
+            <input type="hidden" name="bird_shown_file" value="">
             <input type="hidden" name="bird_novel_file" value="">
-            <input type="hidden" name="tool_study_file" value="">
-            <input type="hidden" name="tool_novel_file" value="">
+            <input type="hidden" name="hammer_shown_file" value="">
+            <input type="hidden" name="hammer_novel_file" value="">
             <!-- Motion params -->
             <input type="hidden" name="bounce_angle_variation" value="">
             <input type="hidden" name="min_angle_from_wall" value="">
@@ -322,13 +322,13 @@
     <script>
         // ============================================================
         // EXPERIMENT CONTROLLER
-        // Bird vs Tool UEO: 4 birds + 4 tools on each trial.
-        // Participant attends one category (bird or tool) and counts
+        // Bird vs Hammer UEO: 4 birds + 4 hammers on each trial.
+        // Participant attends one category (bird or hammer) and counts
         // wall bounces of that category.
         // UEO is the same image as the attended-category exemplar OR
         // the same image as the ignored-category exemplar (between-Ss).
         // Attended category is also between-subjects.
-        // 4-AFC after noticing: study bird, novel bird, study tool, novel tool.
+        // 4-AFC after noticing: shown bird, novel bird, shown hammer, novel hammer.
         // Built from IB_face.html structure.
         // ============================================================
         const experiment = {
@@ -336,18 +336,18 @@
             // Drop these PNGs in images/ (square photos, ~96px)
             imageConfig: {
                 basePath: 'images/',
-                bird_study:  'bird_study.png',   // 4 of these track or are ignored
+                bird_shown:  'bird_shown.png',   // 4 of these track or are ignored
                 bird_novel:  'bird_novel.png',   // forced choice foil only
-                tool_study:  'tool_study.png',   // 4 of these track or are ignored
-                tool_novel:  'tool_novel.png'    // forced choice foil only
+                hammer_shown:  'hammer_shown.png',   // 4 of these track or are ignored
+                hammer_novel:  'hammer_novel.png'    // forced choice foil only
             },
 
             // Loaded Image objects
             images: {
-                bird_study: null,
+                bird_shown: null,
                 bird_novel: null,
-                tool_study: null,
-                tool_novel: null
+                hammer_shown: null,
+                hammer_novel: null
             },
 
             // ── Configuration ─────────────────────────────────────
@@ -387,7 +387,7 @@
                 trialSequence: ['practice', 'practice', 'critical', 'divided'],
                 currentPhase: 'instructions',
                 isRunning: false,
-                attendedCategory: null,   // 'bird' or 'tool'
+                attendedCategory: null,   // 'bird' or 'hammer'
                 ueoMatchType: null        // 'attended' or 'ignored'
             },
 
@@ -407,9 +407,9 @@
                 startTime: '',
                 endTime: '',
                 duration: 0,
-                attendedCategory: null,       // 'bird' or 'tool'
+                attendedCategory: null,       // 'bird' or 'hammer'
                 ignoredCategory: null,        // the other one
-                ueoCategory: null,            // 'bird' or 'tool'
+                ueoCategory: null,            // 'bird' or 'hammer'
                 ueoMatchType: null,           // 'attended' or 'ignored'
                 ueoImage: null,               // filename of UEO image
                 unexpectedObjectDirection: null,
@@ -425,7 +425,7 @@
                 },
                 responses: {
                     noticed: [null, null],       // [critical, divided]
-                    objectChoice: [null, null],  // [critical, divided]: stored as key like 'bird_study'
+                    objectChoice: [null, null],  // [critical, divided]: stored as key like 'bird_shown'
                     choiceCorrectCategory: [null, null],
                     choiceCorrectExemplar: [null, null],
                     // Map of {key: position_index} where position 0=top-left, 1=top-right,
@@ -446,7 +446,7 @@
                 return new Promise((resolve, reject) => {
                     const toLoad = [];
                     const basePath = this.imageConfig.basePath;
-                    const keys = ['bird_study', 'bird_novel', 'tool_study', 'tool_novel'];
+                    const keys = ['bird_shown', 'bird_novel', 'hammer_shown', 'hammer_novel'];
 
                     keys.forEach(key => {
                         const img = new Image();
@@ -476,10 +476,10 @@
                 this.data.subjectCode = urlParams.get('subject_code') || 'test_subject';
                 console.log("Subject code:", this.data.subjectCode);
 
-                // ── Randomize attended category (bird vs tool) ────
-                this.state.attendedCategory = Math.random() < 0.5 ? 'bird' : 'tool';
+                // ── Randomize attended category (bird vs hammer) ────
+                this.state.attendedCategory = Math.random() < 0.5 ? 'bird' : 'hammer';
                 this.data.attendedCategory = this.state.attendedCategory;
-                this.data.ignoredCategory = this.state.attendedCategory === 'bird' ? 'tool' : 'bird';
+                this.data.ignoredCategory = this.state.attendedCategory === 'bird' ? 'hammer' : 'bird';
 
                 console.log("Attended category:", this.data.attendedCategory);
                 console.log("Ignored category:", this.data.ignoredCategory);
@@ -494,7 +494,7 @@
                 } else {
                     this.data.ueoCategory = this.data.ignoredCategory;
                 }
-                this.data.ueoImage = this.imageConfig[this.data.ueoCategory + '_study'];
+                this.data.ueoImage = this.imageConfig[this.data.ueoCategory + '_shown'];
 
                 console.log("UEO match type:", this.state.ueoMatchType);
                 console.log("UEO category:", this.data.ueoCategory);
@@ -507,7 +507,7 @@
                 this.timing.startTime = new Date();
                 this.data.startTime = this.formatDate(this.timing.startTime);
 
-                console.log("Experiment initialized - Bird/Tool UEO");
+                console.log("Experiment initialized - Bird/Hammer UEO");
             },
 
             // Generate random starting positions for ignored objects.
@@ -581,18 +581,18 @@
 
             // Get attended-category image
             getAttendedImage() {
-                return this.images[this.state.attendedCategory + '_study'];
+                return this.images[this.state.attendedCategory + '_shown'];
             },
 
             // Get ignored-category image
             getIgnoredImage() {
-                const ignored = this.state.attendedCategory === 'bird' ? 'tool' : 'bird';
-                return this.images[ignored + '_study'];
+                const ignored = this.state.attendedCategory === 'bird' ? 'hammer' : 'bird';
+                return this.images[ignored + '_shown'];
             },
 
             // Get UEO image (same as attended or ignored, by match type)
             getUEOImage() {
-                return this.images[this.data.ueoCategory + '_study'];
+                return this.images[this.data.ueoCategory + '_shown'];
             },
 
             // Scale source image to displayMaxDim on its longest side,
@@ -674,7 +674,7 @@
                 const trialType = this.state.trialSequence[this.state.currentTrial];
 
                 const attendedSrc = this.imageConfig.basePath
-                                   + this.imageConfig[this.state.attendedCategory + '_study'];
+                                   + this.imageConfig[this.state.attendedCategory + '_shown'];
                 // Labels avoid the word "category" — name items directly so
                 // participants form their own category boundaries.
                 const attendedLabel = this.state.attendedCategory === 'bird' ? 'bird' : 'hammer';
@@ -1093,7 +1093,7 @@
 
             // ============================================================
             // 4AFC OBJECT IDENTIFICATION
-            // Always 4 options: bird_study, bird_novel, tool_study, tool_novel.
+            // Always 4 options: bird_shown, bird_novel, hammer_shown, hammer_novel.
             // Display order randomized.
             // ============================================================
             showObjectSelection() {
@@ -1106,10 +1106,10 @@
                 // high-resolution; CSS scales them down to the 120px choice box
                 // (downscaling is always sharp).
                 const choices = [
-                    { key: 'bird_study', src: basePath + this.imageConfig.bird_study },
+                    { key: 'bird_shown', src: basePath + this.imageConfig.bird_shown },
                     { key: 'bird_novel', src: basePath + this.imageConfig.bird_novel },
-                    { key: 'tool_study', src: basePath + this.imageConfig.tool_study },
-                    { key: 'tool_novel', src: basePath + this.imageConfig.tool_novel }
+                    { key: 'hammer_shown', src: basePath + this.imageConfig.hammer_shown },
+                    { key: 'hammer_novel', src: basePath + this.imageConfig.hammer_novel }
                 ];
 
                 // Shuffle (Fisher-Yates)
@@ -1165,10 +1165,10 @@
                 this.data.responses.selectedPosition[responseIndex] = this.selectedPosition;
 
                 // Diagnostics:
-                //   correct_category: picked something in the UEO's category (regardless of study/novel)
-                //   correct_exemplar: picked the exact study image of the UEO's category
-                const selectedCategory = this.selectedKey.startsWith('bird') ? 'bird' : 'tool';
-                const selectedIsStudy = this.selectedKey.endsWith('_study');
+                //   correct_category: picked something in the UEO's category (regardless of shown/novel)
+                //   correct_exemplar: picked the exact shown image of the UEO's category
+                const selectedCategory = this.selectedKey.startsWith('bird') ? 'bird' : 'hammer';
+                const selectedIsStudy = this.selectedKey.endsWith('_shown');
                 const correctCategory = selectedCategory === this.data.ueoCategory;
                 const correctExemplar = correctCategory && selectedIsStudy;
 
@@ -1257,10 +1257,10 @@
                 form.ueo_image.value = this.data.ueoImage;
 
                 // Stimulus filenames
-                form.bird_study_file.value = this.imageConfig.bird_study;
+                form.bird_shown_file.value = this.imageConfig.bird_shown;
                 form.bird_novel_file.value = this.imageConfig.bird_novel;
-                form.tool_study_file.value = this.imageConfig.tool_study;
-                form.tool_novel_file.value = this.imageConfig.tool_novel;
+                form.hammer_shown_file.value = this.imageConfig.hammer_shown;
+                form.hammer_novel_file.value = this.imageConfig.hammer_novel;
 
                 // Motion params
                 form.bounce_angle_variation.value = this.config.bounceAngleVariation;
@@ -1397,7 +1397,7 @@
         // BOOTSTRAP
         // ============================================================
         window.onload = function() {
-            console.log("Page loaded - Bird/Tool UEO Experiment");
+            console.log("Page loaded - Bird/Hammer UEO Experiment");
             console.log("Loading images...");
 
             experiment.loadImages().then(() => {
@@ -1410,10 +1410,10 @@
                     `<p style="color: red; font-size: 18px;">Error loading images: ${err}</p>
                      <p>Please ensure all images are in the <strong>images/</strong> folder:</p>
                      <ul style="text-align: left; display: inline-block;">
-                        <li>${experiment.imageConfig.bird_study}</li>
+                        <li>${experiment.imageConfig.bird_shown}</li>
                         <li>${experiment.imageConfig.bird_novel}</li>
-                        <li>${experiment.imageConfig.tool_study}</li>
-                        <li>${experiment.imageConfig.tool_novel}</li>
+                        <li>${experiment.imageConfig.hammer_shown}</li>
+                        <li>${experiment.imageConfig.hammer_novel}</li>
                      </ul>`;
             });
         };
